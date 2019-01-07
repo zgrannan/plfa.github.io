@@ -76,9 +76,12 @@ that a newly introduced operator is associative but not commutative.
 Give another example of a pair of operators that have an identity
 and are associative, commutative, and distribute over one another.
 
+???
+
 Give an example of an operator that has an identity and is
 associative but is not commutative.
 
+Division
 
 ## Associativity
 
@@ -633,6 +636,31 @@ Write out what is known about associativity of addition on each of the first fou
 days using a finite story of creation, as
 [earlier][plfa.Naturals#finite-creation].
 
+0 : ℕ
+1 : ℕ (0 + 0) + 0 ≡ 0 + (0 + 0)
+2 : ℕ (0 + 0) + 1 ≡ 0 + (0 + 1)
+(0 + 1) + 0 ≡ 0 + (1 + 0)
+(0 + 1) + 1 ≡ 0 + (1 + 1)
+(1 + 0) + 0 ≡ 1 + (0 + 0)
+(1 + 0) + 1 ≡ 1 + (0 + 1)
+(1 + 1) + 0 ≡ 1 + (1 + 0)
+(1 + 1) + 1 ≡ 1 + (1 + 1)
+3 : ℕ (0 + 0) + 2 ≡ 0 + (0 + 2)
+(0 + 1) + 2 ≡ 0 + (1 + 2)
+(0 + 2) + 0 ≡ 0 + (2 + 0)
+(0 + 2) + 1 ≡ 0 + (2 + 1)
+(0 + 2) + 2 ≡ 0 + (2 + 2)
+(2 + 0) + 0 ≡ 2 + (0 + 0)
+(2 + 0) + 1 ≡ 2 + (0 + 1)
+(2 + 0) + 2 ≡ 2 + (0 + 2)
+(2 + 1) + 0 ≡ 2 + (1 + 0)
+(2 + 1) + 1 ≡ 2 + (1 + 1)
+(2 + 1) + 2 ≡ 2 + (1 + 2)
+(2 + 2) + 0 ≡ 2 + (2 + 0)
+(2 + 2) + 1 ≡ 2 + (2 + 1)
+(2 + 2) + 2 ≡ 2 + (2 + 2)
+
+
 ## Associativity with rewrite
 
 There is more than one way to skin a cat.  Here is a second proof of
@@ -795,6 +823,25 @@ for all naturals `m`, `n`, and `p`. No induction is needed,
 just apply the previous results which show addition
 is associative and commutative.
 
+m + (n + p) ->
+(m + n) + p ->
+(n + m) + p ->
+
+
+\begin{code}
++-swap : ∀ (m n p : ℕ ) → m + (n + p) ≡ n + (m + p)
++-swap m n p =
+  begin
+    m + (n + p)
+  ≡⟨ sym (+-assoc m n p) ⟩
+   (m + n) + p
+  ≡⟨ cong (_+ p) (+-comm m n) ⟩
+   (n + m) + p
+  ≡⟨ +-assoc n m p ⟩
+   n + (m + p)
+  ∎
+\end{code}
+
 #### Exercise `*-distrib-+` (recommended) {#times-distrib-plus}
 
 Show multiplication distributes over addition, that is,
@@ -803,6 +850,27 @@ Show multiplication distributes over addition, that is,
 
 for all naturals `m`, `n`, and `p`.
 
+\begin{code}
+
+
+*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+*-distrib-+ zero n p    = refl
+*-distrib-+ (suc m) n p =
+  begin
+    (suc m + n) * p
+  ≡⟨ refl ⟩
+    suc (m + n) * p
+  ≡⟨ refl ⟩
+    p + ((m + n) * p)
+  ≡⟨ cong (p +_) (*-distrib-+ m n p) ⟩
+    p + (m * p + n * p)
+  ≡⟨ sym (+-assoc p (m * p) (n * p) ) ⟩
+    (p + m * p) + n * p
+  ≡⟨ refl ⟩
+   (suc m * p) + (n * p)
+  ∎
+\end{code}
+
 #### Exercise `*-assoc` (recommended) {#times-assoc}
 
 Show multiplication is associative, that is,
@@ -810,6 +878,10 @@ Show multiplication is associative, that is,
     (m * n) * p ≡ m * (n * p)
 
 for all naturals `m`, `n`, and `p`.
+
+\begin{code}
+*-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+\end{code}
 
 #### Exercise `*-comm` {#times-comm}
 
