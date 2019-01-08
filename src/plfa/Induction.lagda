@@ -881,6 +881,19 @@ for all naturals `m`, `n`, and `p`.
 
 \begin{code}
 *-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+*-assoc zero n p = refl
+*-assoc (suc m) n p =
+  begin
+    (suc m * n) * p
+  ≡⟨ refl ⟩
+    (n + m * n) * p
+  ≡⟨ *-distrib-+ n (m * n) p ⟩
+    n * p + m * n * p
+  ≡⟨ cong ( (n * p) +_) (*-assoc m n p) ⟩
+    n * p + m * (n * p)
+  ≡⟨⟩
+    (suc m) * (n * p)
+  ∎
 \end{code}
 
 #### Exercise `*-comm` {#times-comm}
@@ -891,6 +904,53 @@ Show multiplication is commutative, that is,
 
 for all naturals `m` and `n`.  As with commutativity of addition,
 you will need to formulate and prove suitable lemmas.
+
+\begin{code}
+*-identityʳ : ∀ (m : ℕ) → m * 1 ≡ m
+*-identityʳ zero = refl
+*-identityʳ (suc m) =
+  begin
+    (suc m) * 1
+  ≡⟨⟩
+    (1 + m) * 1
+  ≡⟨⟩
+    (1 * 1) + (m * 1)
+  ≡⟨⟩
+    1 + (m * 1)
+  ≡⟨ cong (1 +_) (*-identityʳ m) ⟩
+    1 + m
+  ≡⟨⟩
+    suc m
+  ∎
+
+*-right : ∀ (m n : ℕ) → m * suc n ≡ m + n * m
+*-right zero n =
+  begin
+    zero * suc n
+  ≡⟨⟩
+    zero * (1 + n)
+  ≡⟨⟩
+    zero + zero * n
+  ≡⟨⟩
+    zero + n * zero
+  ∎
+
+*-right (suc m) n =
+  begin
+    (1 + m) * suc n
+  ≡⟨ *-distrib-+ 1 m (suc n) ⟩
+    1 * suc n + m * suc n
+  ≡⟨ cong ((1 * suc n) +_) (*-right m n) ⟩
+    1 * suc n + (m + n * m)
+  ≡⟨⟩
+    suc n + (m + n * m)
+  ≡⟨⟩
+    suc m + n * suc m
+  ∎
+
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm = {!!}
+\end{code}
 
 #### Exercise `0∸n≡0` {#zero-monus}
 
