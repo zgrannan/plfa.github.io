@@ -910,41 +910,40 @@ you will need to formulate and prove suitable lemmas.
 *-identityʳ zero = refl
 *-identityʳ (suc m) =
   begin
-    (suc m) * 1
-  ≡⟨⟩
-    (1 + m) * 1
-  ≡⟨⟩
-    (1 * 1) + (m * 1)
-  ≡⟨⟩
     1 + (m * 1)
   ≡⟨ cong (1 +_) (*-identityʳ m) ⟩
-    1 + m
-  ≡⟨⟩
     suc m
+  ∎
+
+*-zero : ∀ (m : ℕ) → m * zero ≡ zero
+*-zero zero = refl
+*-zero (suc n) =
+  begin
+    (1 + n) * zero
+  ≡⟨ *-distrib-+ 1 n zero ⟩
+    1 * zero + n * zero
+  ≡⟨ cong ( (1 * zero) +_) (*-zero n) ⟩
+    zero
   ∎
 
 *-right : ∀ (m n : ℕ) → m * suc n ≡ m + n * m
 *-right zero n =
   begin
-    zero * suc n
-  ≡⟨⟩
-    zero * (1 + n)
-  ≡⟨⟩
-    zero + zero * n
-  ≡⟨⟩
+    zero + zero
+  ≡⟨ cong (zero +_) (sym (*-zero n)) ⟩
     zero + n * zero
   ∎
 
 *-right (suc m) n =
   begin
-    (1 + m) * suc n
-  ≡⟨ *-distrib-+ 1 m (suc n) ⟩
-    1 * suc n + m * suc n
-  ≡⟨ cong ((1 * suc n) +_) (*-right m n) ⟩
-    1 * suc n + (m + n * m)
-  ≡⟨⟩
+    (suc n) + m * (suc n)
+  ≡⟨ cong ((suc n) +_) (*-right m n) ⟩
     suc n + (m + n * m)
-  ≡⟨⟩
+  ≡⟨ sym (+-assoc (suc n) m (n * m))⟩
+    suc (n + m) + n * m
+  ≡⟨ cong (λ x → suc x + n * m) (+-comm n m) ⟩
+    suc m + n + n * m
+  ≡⟨ {!!} ⟩
     suc m + n * suc m
   ∎
 
