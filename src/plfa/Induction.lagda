@@ -996,6 +996,24 @@ Show that monus associates with addition, that is,
 
 for all naturals `m`, `n`, and `p`.
 
+\begin{code}
+∸-+-assoc : ∀ (m n p : ℕ) → m ∸ n ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero n p =
+  begin
+    zero ∸ n ∸ p
+  ≡⟨ cong (_∸ p) (zero-monus n) ⟩
+    zero ∸ p
+  ≡⟨ zero-monus p ⟩
+    zero
+  ≡⟨ sym (zero-monus (n + p)) ⟩
+    zero ∸ (n + p)
+  ∎
+
+∸-+-assoc (suc _) zero _       = refl
+
+∸-+-assoc (suc m) (suc n) p = ∸-+-assoc m n p
+\end{code}
+
 #### Exercise `Bin-laws` (stretch) {#Bin-laws}
 
 Recall that 
