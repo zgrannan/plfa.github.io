@@ -926,29 +926,50 @@ you will need to formulate and prove suitable lemmas.
     zero
   ∎
 
-*-right : ∀ (m n : ℕ) → m * suc n ≡ m + n * m
-*-right zero n =
-  begin
-    zero + zero
-  ≡⟨ cong (zero +_) (sym (*-zero n)) ⟩
-    zero + n * zero
-  ∎
+*-lemma : ∀ (m n : ℕ) → n + n * m ≡ n * (suc m)
+*-lemma m zero = refl
 
-*-right (suc m) n =
+*-lemma m (suc n) =
   begin
-    (suc n) + m * (suc n)
-  ≡⟨ cong ((suc n) +_) (*-right m n) ⟩
+    (suc n) + (suc n * m)
+  ≡⟨ refl ⟩
     suc n + (m + n * m)
-  ≡⟨ sym (+-assoc (suc n) m (n * m))⟩
-    suc (n + m) + n * m
-  ≡⟨ cong (λ x → suc x + n * m) (+-comm n m) ⟩
-    suc m + n + n * m
-  ≡⟨ {!!} ⟩
-    suc m + n * suc m
+  ≡⟨ sym (+-assoc (suc n) m (n * m) )⟩
+    (suc n + m) + n * m
+  ≡⟨ cong (_+ n * m) (+-comm (suc n) m) ⟩
+    (m + (1 + n)) + n * m
+  ≡⟨ +-assoc m (suc n) (n * m) ⟩
+    m + (1 + n + n * m)
+  ≡⟨ sym (+-assoc m 1 (n + n * m)) ⟩
+    m + 1 + (n + n * m)
+  ≡⟨ cong (m + 1 +_) (*-lemma m n) ⟩
+   m + 1 + n * suc m
+  ≡⟨ cong (_+ n * suc m) (+-comm m 1) ⟩
+    (suc n) * (suc m)
+  ∎
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm zero n =
+  begin
+    zero * n
+  ≡⟨ refl ⟩
+    zero
+  ≡⟨ sym (*-zero n) ⟩
+    n * zero
   ∎
 
-*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
-*-comm = {!!}
+*-comm (suc m) n =
+  begin
+   (suc m) * n
+  ≡⟨ *-distrib-+ 1 m n ⟩
+    1 * n + m * n
+  ≡⟨ cong ((1 * n) +_) (*-comm m n) ⟩
+    (n + 0) + n * m
+  ≡⟨ cong (_+ (n * m)) (+-identityʳ n) ⟩
+    n + n * m
+  ≡⟨ *-lemma m n ⟩
+   n * (suc m)
+  ∎
+
 \end{code}
 
 #### Exercise `0∸n≡0` {#zero-monus}
