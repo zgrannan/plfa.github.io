@@ -980,6 +980,14 @@ Show
 
 for all naturals `n`. Did your proof require induction?
 
+\begin{code}
+zero-monus : ∀ (n : ℕ) → zero ∸ n ≡ zero
+zero-monus zero    = refl
+zero-monus (suc _) = refl
+\end{code}
+
+Induction is not required.
+
 #### Exercise `∸-+-assoc` {#monus-plus-assoc}
 
 Show that monus associates with addition, that is,
