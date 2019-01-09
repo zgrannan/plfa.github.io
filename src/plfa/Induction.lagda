@@ -1063,6 +1063,22 @@ proof1 (x1 rest) =
     1 + (2 * (from rest) + 1)
   ∎
 
+counterexample : to (from nil) ≡ x0 nil
+counterexample = refl
+
+proof2 : ∀ (n : ℕ) → from (to n) ≡ n
+proof2 0 = refl
+proof2 (suc n) =
+  begin
+    from (inc (to n))
+  ≡⟨ proof1 (to n) ⟩
+    suc (from (to n))
+  ≡⟨ cong suc (proof2 n) ⟩
+    suc n
+  ∎
+
+-- to (from x) ≡ x cannot be proven: to (from nil) = x0 nil
+
 \end{code}
 and asks you to define functions
 
