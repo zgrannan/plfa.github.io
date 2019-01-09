@@ -883,6 +883,38 @@ number.  For example, since `1100` encodes twelve, we should have:
 Confirm that this gives the correct answer for the bitstrings
 encoding zero through four.
 
+\begin{code}
+
+zeros : Bin → Bin
+zeros nil        = nil
+zeros (x0 rest) = x0 (zeros rest)
+zeros (x1 rest) = x0 (zeros rest)
+
+inc : Bin → Bin
+inc nil        = x1 nil
+inc (x0  rest) = x1 rest
+inc (x1  rest) = x0 (inc rest)
+
+_ : inc (x0 nil) ≡ x1 nil
+_ = refl
+
+_ : inc (x1 nil) ≡ x0 x1 nil
+_ = refl
+
+_ : inc (x0 x1 nil) ≡ x1 x1 nil
+_ = refl
+
+_ : inc (x1 x1 nil) ≡ x0 x0 x1 nil
+_ = refl
+
+_ : inc (x0 x0 x1 nil) ≡ x1 x0 x1 nil
+_ = refl
+
+_ : inc (x1 x1 x0 x1 nil) ≡ x0 x0 x1 x1 nil
+_ = refl
+
+\end{code}
+
 Using the above, define a pair of functions to convert
 between the two representations.
 
