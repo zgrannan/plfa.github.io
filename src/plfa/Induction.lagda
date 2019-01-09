@@ -1024,12 +1024,52 @@ data Bin : Set where
   nil : Bin
   x0_ : Bin → Bin
   x1_ : Bin → Bin
+
+inc : Bin → Bin
+inc nil        = x1 nil
+inc (x0  rest) = x1 rest
+inc (x1  rest) = x0 (inc rest)
+
+from : Bin → ℕ
+from nil       = 0
+from (x0 rest) = 2 * (from rest)
+from (x1 rest) = 2 * (from rest) + 1
+
+to : ℕ → Bin
+to 0             = x0 nil
+to (suc x)       = inc (to x)
+
+proof1 : ∀ (x : Bin) → from (inc x) ≡ suc (from x)
+proof1 nil = refl
+proof1 (x0 rest) =
+  begin
+    2 * from rest + 1
+  ≡⟨ +-comm (2 * from rest) 1 ⟩
+    suc (from (x0 rest))
+  ∎
+
+proof1 (x1 rest) =
+  begin
+    2 * from (inc rest)
+  ≡⟨ cong (2 *_) (proof1 rest) ⟩
+    2 * (1 + (from rest))
+  ≡⟨ *-comm 2 (1 + from rest) ⟩
+    (1 + (from rest)) * 2
+  ≡⟨ *-distrib-+ 1 (from rest) 2 ⟩
+    1 * 2 + from rest * 2
+  ≡⟨ cong (1 * 2 +_) (*-comm (from rest) 2) ⟩
+    1 + 1 + 2 * from rest
+  ≡⟨ cong (1 +_) (+-comm 1 (2 * from rest)) ⟩
+    1 + (2 * (from rest) + 1)
+  ∎
+
 \end{code}
 and asks you to define functions
 
     inc   : Bin → Bin
     to    : ℕ → Bin
     from  : Bin → ℕ
+
 
 Consider the following laws, where `n` ranges over naturals and `x`
 over bitstrings:
