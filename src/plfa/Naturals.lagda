@@ -925,6 +925,49 @@ For the former, choose the bitstring to have no leading zeros if it
 represents a positive natural, and represent zero by `x0 nil`.
 Confirm that these both give the correct answer for zero through four.
 
+\begin{code}
+
+to : ℕ → Bin
+to 0             = x0 nil
+to (suc x)       = inc (to x)
+
+_ : to 0 ≡ x0 nil
+_ = refl
+
+_ : to 1 ≡ x1 nil
+_ = refl
+
+_ : to 2 ≡ x0 x1 nil
+_ = refl
+
+_ : to 3 ≡ x1 x1 nil
+_ = refl
+
+_ : to 4 ≡ x0 x0 x1 nil
+_ = refl
+
+from : Bin → ℕ
+from nil       = 0
+from (x0 rest) = 2 * (from rest)
+from (x1 rest) = (2 * (from rest)) + 1
+
+_ : from (x0 nil) ≡ 0
+_ = refl
+
+_ : from (x1 nil) ≡ 1
+_ = refl
+
+_ : from (x0 x1 nil) ≡ 2
+_ = refl
+
+_ : from (x1 x1 nil) ≡ 3
+_ = refl
+
+_ : from (x0 x0 x1 nil) ≡ 4
+_ = refl
+
+\end{code}
+
 
 
 ## Standard library
