@@ -758,6 +758,23 @@ successor of the sum of two even numbers, which is even.
 
 Show that the sum of two odd numbers is even.
 
+\begin{code}
+
+lemma' : ∀ { m n : ℕ } → suc (suc (m + n)) ≡ suc m + suc n
+lemma' = {!!}
+
+lemma : ∀ { m n : ℕ } → even (suc (suc (m + n))) → even (suc m + suc n)
+lemma = {!!}
+
+o+o≡e : ∀ { m n : ℕ } → odd m → odd n → even (m + n)
+o+o≡e (suc zero) (suc zero) = suc (suc zero)
+o+o≡e (suc (suc m)) (suc (suc n)) =
+  let
+    t = o+o≡e m n
+  in
+    {!!}
+\end{code}
+
 #### Exercise `Bin-predicates` (stretch) {#Bin-predicates}
 
 Recall that 
