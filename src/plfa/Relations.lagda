@@ -200,8 +200,11 @@ partial order but not a total order.
 
 Give an example of a preorder that is not a partial order.
 
+m ≤² n (i.e comparing the squares)
+
 Give an example of a partial order that is not a total order.
 
+≤ except 0 ≤ 1 does not hold and 1 ≤ 0 does not hold
 
 ## Reflexivity
 
@@ -311,6 +314,8 @@ follows by congruence.
 
 The above proof omits cases where one argument is `z≤n` and one
 argument is `s≤s`.  Why is it ok to omit them?
+
+It would be an absurd case, it implies `n` is both `0` and `suc _`
 
 
 ## Total
@@ -497,6 +502,15 @@ transitivity proves `m + p ≤ n + q`, as was to be shown.
 #### Exercise `*-mono-≤` (stretch)
 
 Show that multiplication is monotonic with regard to inequality.
+
+\begin{code}
+*-monoʳ-≤ : ∀ (m p q : ℕ) → p ≤ q → m * p ≤ m * q
+*-monoʳ-≤ zero _ _ _ = z≤n
+*-monoʳ-≤ (suc m) p q p≤q = +-mono-≤ p q (m * p) (m * q) p≤q (*-monoʳ-≤ m p q p≤q)
+
+*-mono-≤ : ∀ (m n p q : ℕ) → m ≤ n → p ≤ q → m * p ≤ n * q
+*-mono-≤ = {!!}
+\end{code}
 
 
 ## Strict inequality {#strict-inequality}
