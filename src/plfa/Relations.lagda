@@ -578,6 +578,27 @@ similar to that used for totality.
 (We will show that the three cases are exclusive after we introduce
 [negation][plfa.Negation].)
 
+\begin{code}
+data Tri (m n : ℕ) : Set where
+
+  triEqual : m ≡ n → Tri m n
+
+  triForward : m < n → Tri m n
+
+  triFlipped : n < m → Tri m n
+
+<-tri : ∀ (m n : ℕ) → Tri m n
+<-tri zero    zero                   = triEqual refl
+<-tri (suc m) zero                   = triFlipped z<s
+<-tri zero    (suc n)                = triForward z<s
+<-tri (suc m) (suc n) with <-tri m n
+...                      | triEqual   e = triEqual (cong suc e)
+...                      | triFlipped e = triFlipped (s<s e)
+...                      | triForward e = triForward (s<s e)
+
+\end{code}
+
+
 #### Exercise `+-mono-<` {#plus-mono-less}
 
 Show that addition is monotonic with respect to strict inequality.
