@@ -558,6 +558,12 @@ exploiting the corresponding properties of inequality.
 
 Show that strict inequality is transitive.
 
+\begin{code}
+<-trans : ∀ {m n p : ℕ} → m < n → n < p → m < p
+<-trans z<s       (s<s n<p)  = z<s
+<-trans (s<s m<n) (s<s n<p)  = s<s (<-trans m<n n<p)
+\end{code}
+
 #### Exercise `trichotomy` {#trichotomy}
 
 Show that strict inequality satisfies a weak version of trichotomy, in
