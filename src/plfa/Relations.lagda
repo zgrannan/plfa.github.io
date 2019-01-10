@@ -622,17 +622,17 @@ As with inequality, some additional definitions may be required.
 Show that `suc m ≤ n` implies `m < n`, and conversely.
 
 \begin{code}
-≤-iff-< : ∀ (m n : ℕ) → suc m ≤ n
+≤-iff-< : ∀ {m n : ℕ} → suc m ≤ n
                       → m < n
-≤-iff-< _    zero          ()
-≤-iff-< zero    (suc _) e       = z<s
-≤-iff-< (suc m) (suc n) (s≤s e) = +-monoʳ-< 1 m n (≤-iff-< m n e)
+≤-iff-< {_}     {zero}          ()
+≤-iff-< {zero}  {suc _} e       = z<s
+≤-iff-< {suc m} {suc n} (s≤s e) = +-monoʳ-< 1 m n (≤-iff-< e)
 
-<-iff-≤ : ∀ (m n : ℕ) → m < n
+<-iff-≤ : ∀ {m n : ℕ} → m < n
                       → suc m ≤ n
-<-iff-≤ _       zero    ()
-<-iff-≤ zero    (suc _) _       = s≤s z≤n
-<-iff-≤ (suc m) (suc n) (s<s e) = +-monoʳ-≤ 1 (suc m) n (<-iff-≤ m n e)
+<-iff-≤ {_}     {zero}   ()
+<-iff-≤ {zero}  {suc _} _       = s≤s z≤n
+<-iff-≤ {suc m} {suc n} (s<s e) = +-monoʳ-≤ 1 (suc m) n (<-iff-≤ e)
 \end{code}
 
 #### Exercise `<-trans-revisited` {#less-trans-revisited}
@@ -641,6 +641,20 @@ Give an alternative proof that strict inequality is transitive,
 using the relating between strict inequality and inequality and
 the fact that inequality is transitive.
 
+\begin{code}
+<-trans-r : ∀ {m n p : ℕ} → m < n
+                          → n < p
+                          → m < p
+
+<-trans-r {m} {zero} () m<p
+<-trans-r {m} {suc n} {suc p} m<n (s<s n<p) =
+  let
+    m≤n = <-iff-≤ {m} {suc n} m<n
+    n≤p = +-mono-≤ 0 1 (suc n) p z≤n (<-iff-≤ n<p)
+  in
+    ≤-iff-< (≤-trans m≤n n≤p)
+
+\end{code}
 
 ## Even and odd
 
