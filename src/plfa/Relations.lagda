@@ -604,9 +604,36 @@ data Tri (m n : ℕ) : Set where
 Show that addition is monotonic with respect to strict inequality.
 As with inequality, some additional definitions may be required.
 
+\begin{code}
++-monoʳ-< : ∀ (m p q : ℕ) → p < q → m + p < m + q
++-monoʳ-< zero    p q p<q  =  p<q
++-monoʳ-< (suc m) p q p<q  =  s<s (+-monoʳ-< m p q p<q)
+
++-monoˡ-< : ∀ (m n p : ℕ) → m < n → m + p < n + p
++-monoˡ-< m n p m<n  rewrite +-comm m p | +-comm n p  = +-monoʳ-< p m n m<n
+
++-mono-< : ∀ (m n p q : ℕ) → m < n → p < q → m + p < n + q
++-mono-< m n p q m<n p<q  =  <-trans (+-monoˡ-< m n p m<n) (+-monoʳ-< n p q p<q)
+\end{code}
+
+
 #### Exercise `≤-iff-<` (recommended) {#leq-iff-less}
 
 Show that `suc m ≤ n` implies `m < n`, and conversely.
+
+\begin{code}
+≤-iff-< : ∀ (m n : ℕ) → suc m ≤ n
+                      → m < n
+≤-iff-< _    zero          ()
+≤-iff-< zero    (suc _) e       = z<s
+≤-iff-< (suc m) (suc n) (s≤s e) = +-monoʳ-< 1 m n (≤-iff-< m n e)
+
+<-iff-≤ : ∀ (m n : ℕ) → m < n
+                      → suc m ≤ n
+<-iff-≤ _       zero    ()
+<-iff-≤ zero    (suc _) _       = s≤s z≤n
+<-iff-≤ (suc m) (suc n) (s<s e) = +-monoʳ-≤ 1 (suc m) n (<-iff-≤ m n e)
+\end{code}
 
 #### Exercise `<-trans-revisited` {#less-trans-revisited}
 
