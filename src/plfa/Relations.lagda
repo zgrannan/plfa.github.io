@@ -19,7 +19,7 @@ the next step is to define relations, such as _less than or equal_.
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
-open import Data.Nat.Properties using (+-comm; +-suc)
+open import Data.Nat.Properties using (+-comm; +-suc; *-comm)
 open import Data.List using (List; []; _∷_)
 open import Function using (id; _∘_)
 open import Relation.Nullary using (¬_)
@@ -508,8 +508,11 @@ Show that multiplication is monotonic with regard to inequality.
 *-monoʳ-≤ zero _ _ _ = z≤n
 *-monoʳ-≤ (suc m) p q p≤q = +-mono-≤ p q (m * p) (m * q) p≤q (*-monoʳ-≤ m p q p≤q)
 
+*-monoˡ-≤ : ∀ (m n p : ℕ) → m ≤ n → m * p ≤ n * p
+*-monoˡ-≤ m n p m≤n rewrite *-comm m p | *-comm n p = *-monoʳ-≤ p m n m≤n
+
 *-mono-≤ : ∀ (m n p q : ℕ) → m ≤ n → p ≤ q → m * p ≤ n * q
-*-mono-≤ = {!!}
+*-mono-≤ m n p q m≤n p≤q  =  ≤-trans (*-monoˡ-≤ m n p m≤n) (*-monoʳ-≤ n p q p≤q)
 \end{code}
 
 
