@@ -17,6 +17,7 @@ the next step is to define relations, such as _less than or equal_.
 
 \begin{code}
 import Relation.Binary.PropositionalEquality as Eq
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open Eq using (_≡_; refl; cong; sym)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
 open import Data.Nat.Properties using (+-comm; +-suc; *-comm; +-assoc)
@@ -799,17 +800,71 @@ that holds only if the bistring has a leading one.  A bitstring is
 canonical if it has a leading one (representing a positive number) or
 if it consists of a single zero (representing zero).
 
+\begin{code}
+
+data Bin : Set where
+  nil : Bin
+  x0_ : Bin → Bin
+  x1_ : Bin → Bin
+
+data One : Bin → Set where
+  one : One (x1 nil)
+
+  y0_ : ∀ {bin : Bin} → One bin → One (x0 bin)
+
+  y1_ : ∀ {bin : Bin} → One bin → One (x1 bin)
+
+data Can : Bin → Set where
+  zero : Can (x0 nil)
+
+  can : ∀ {bin : Bin} → One bin → Can bin
+
+inc : Bin → Bin
+inc nil        = x1 nil
+inc (x0  rest) = x1 rest
+inc (x1  rest) = x0 (inc rest)
+
+\end{code}
+
 Show that increment preserves canonical bitstrings:
 
     Can x
     ------------
     Can (inc x)
 
+\begin{code}
+one-inc : ∀ { x : Bin } → One x → One (inc x)
+one-inc one    = y0 one
+one-inc (y0 o) = y1 o
+one-inc (y1 o) = y0 (one-inc o)
+
+can-inc : ∀ { x : Bin } → Can x → Can (inc x)
+can-inc zero    = can one
+can-inc (can o) = can (one-inc o)
+
+\end{code}
+
 Show that converting a natural to a bitstring always yields a
 canonical bitstring:
 
     ----------
     Can (to n)
+
+\begin{code}
+
+to : ℕ → Bin
+to 0             = x0 nil
+to (suc x)       = inc (to x)
+
+to-one : ∀ {n : ℕ} → One (to (suc n))
+to-one {zero}  = one
+to-one {suc n} = one-inc (to-one {n})
+
+to-can : ∀ {n : ℕ} → Can (to n)
+to-can {zero}  = zero
+to-can {suc n} = can (to-one {n})
+
+\end{code}
 
 Show that converting a canonical bitstring to a natural
 and back is the identity:
@@ -818,8 +873,48 @@ and back is the identity:
     ---------------
     to (from x) ≡ x
 
-(Hint: For each of these, you may first need to prove related
-properties of `One`.)
+\begin{code}
+
+from : Bin → ℕ
+from nil       = 0
+from (x0 rest) = 2 * (from rest)
+from (x1 rest) = (2 * (from rest)) + 1
+
+lemma : ∀ {x : Bin} → One x → to (2 * from x) ≡ x0 x
+lemma one    = refl
+lemma {x} (y0 o) =
+  begin
+    to (2 * from x)
+  ≡⟨ {!!} ⟩
+   (x0 x)
+  ∎
+lemma (y1 o) = {!!}
+
+one-ident : ∀ {x : Bin} → One x → to (from x) ≡ x
+one-ident one    = refl
+one-ident {x1 x} (y1 o) =
+  begin
+    to (2 * from x + 1)
+  ≡⟨ {!!} ⟩
+    to (suc (2 * from x))
+  ≡⟨ {!!} ⟩
+    inc (to (2 * from x))
+  ≡⟨ {!!} ⟩
+    x1 x
+  ∎
+one-ident {x0 x} (y0 o) =
+  begin
+    to (2 * from x)
+  ≡⟨ {!!} ⟩
+    x0 x
+  ∎
+
+can-ident : ∀ {x : Bin} → Can x → to (from x) ≡ x
+can-ident = {!!}
+
+\end{code}
+
+
 
 ## Standard library
 
