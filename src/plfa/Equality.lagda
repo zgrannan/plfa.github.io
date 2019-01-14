@@ -353,6 +353,97 @@ notation for `≡-reasoning`.  Define `≤-reasoning` analogously, and use
 it to write out an alternative proof that addition is monotonic with
 regard to inequality.  Rewrite both `+-monoˡ-≤` and `+-mono-≤`.
 
+\begin{code}
+
+infix 4 _≤_
+
+data _≤_ : ℕ → ℕ → Set where
+
+  z≤n : ∀ {n : ℕ} → zero ≤ n
+
+  s≤s : ∀ {m n : ℕ} → m ≤ n → suc m ≤ suc n
+
+≤-trans : ∀ {x y z : ℕ}
+  → x ≤ y
+  → y ≤ z
+  -----
+  → x ≤ z
+≤-trans z≤n      _      =  z≤n
+≤-trans (s≤s t) (s≤s u) =  s≤s (≤-trans t u)
+
+≤-refl : ∀ x → x ≤ x
+≤-refl zero    = z≤n
+≤-refl (suc n) = s≤s (≤-refl n)
+
+≤-refl′ : ∀ {x y z}
+  → x ≡ y
+  → x ≤ z
+  → y ≤ z
+≤-refl′ refl x≤z = x≤z
+
+
+module ≤-Reasoning where
+
+  infix  1 ≤begin_
+  infixr 2 _≤⟨⟩_ _≤⟨_⟩_ _≡′⟨_⟩_
+  infix  3 _≤∎
+
+  ≤begin_ : ∀ { x y : ℕ } → x ≤ y → x ≤ y
+  ≤begin e = e
+
+  _≤⟨⟩_ : ∀ (x : ℕ) {y : ℕ}
+    → x ≤ y
+    -----
+    → x ≤ y
+  x ≤⟨⟩ x≤y  =  x≤y
+
+  _≡′⟨_⟩_ : ∀ x {y z}
+    → x ≡ y
+    → y ≤ z
+    -----
+    → x ≤ z
+  x ≡′⟨ refl ⟩ y≤z  = ≤-refl′ refl y≤z
+
+  _≤⟨_⟩_ : ∀ x {y z}
+    → x ≤ y
+    → y ≤ z
+    -----
+    → x ≤ z
+  x ≤⟨ x≤y ⟩ y≤z  =  ≤-trans x≤y y≤z
+
+  _≤∎ : ∀ x → x ≤ x
+  x ≤∎  = ≤-refl x
+
+open ≤-Reasoning
+
++-monoˡ-≤ : ∀ (m n p : ℕ)
+  → m ≤ n
+  -------------
+  → m + p ≤ n + p
++-monoˡ-≤ m n zero m≤n =
+  ≤begin
+    m + zero
+  ≡′⟨ +-identity m ⟩
+    m
+  ≤⟨ m≤n ⟩
+    n
+  ≡′⟨ sym (+-identity n) ⟩
+    (n + zero)
+  ≤∎
+
++-monoˡ-≤ m n (suc p) m≤n  =
+  ≤begin
+    m + ((suc zero) + p)
+  ≡′⟨ {!!} ⟩ 
+    suc (m + p)
+  ≤⟨ +-monoˡ-≤ m n p ⟩
+    suc (n + p)
+  ≤⟨ {!!} ⟩
+    n + (suc p)
+  ≤∎
+
+\end{code}
+
 
 
 ## Rewriting
