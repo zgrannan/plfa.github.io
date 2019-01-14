@@ -433,13 +433,58 @@ open ≤-Reasoning
 
 +-monoˡ-≤ m n (suc p) m≤n  =
   ≤begin
-    m + ((suc zero) + p)
-  ≡′⟨ {!!} ⟩ 
+    m + (suc p)
+  ≡′⟨ +-suc m p ⟩
     suc (m + p)
-  ≤⟨ +-monoˡ-≤ m n p ⟩
+  ≤⟨ s≤s (+-monoˡ-≤ m n p m≤n) ⟩
     suc (n + p)
-  ≤⟨ {!!} ⟩
+  ≡′⟨ sym (+-suc n p) ⟩
     n + (suc p)
+  ≤∎
+
++-monoʳ-≤ : ∀ (m p q : ℕ)
+  → p ≤ q
+  -------------
+  → m + p ≤ m + q
+
++-monoʳ-≤ zero _ _ p≤q = p≤q
++-monoʳ-≤ (suc m) p q p≤q = s≤s (+-monoʳ-≤ m p q p≤q)
+
++-mono-≤ : ∀ (m n p q : ℕ)
+  → m ≤ n
+  → p ≤ q
+  → m + p ≤ n + q
+
++-mono-≤ m n (suc p) zero m≤n ()
+
++-mono-≤ zero n p q _ p≤q =
+  ≤begin
+    p
+  ≤⟨ p≤q ⟩
+    q
+  ≤⟨ +-monoˡ-≤ zero n q z≤n ⟩
+    n + q
+  ≤∎
+
++-mono-≤ m n zero q m≤n _ =
+  ≤begin
+    m + zero
+  ≡′⟨ +-identity m ⟩
+    m
+  ≤⟨ m≤n ⟩
+    n
+  ≡′⟨ sym (+-identity n) ⟩
+    n + zero
+  ≤⟨ +-monoʳ-≤ n zero q z≤n ⟩
+    n + q
+  ≤∎
+
+
++-mono-≤ (suc m) (suc n) p q (s≤s m≤n) p≤q =
+  ≤begin
+    suc (m + p)
+  ≤⟨ s≤s ( +-mono-≤ m n p q m≤n p≤q ) ⟩
+    suc n + q
   ≤∎
 
 \end{code}
