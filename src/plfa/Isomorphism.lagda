@@ -426,11 +426,15 @@ open ≲-Reasoning
 
 Show that every isomorphism implies an embedding.
 \begin{code}
-postulate
-  ≃-implies-≲ : ∀ {A B : Set}
-    → A ≃ B
-      -----
-    → A ≲ B  
+≃-implies-≲ : ∀ {A B : Set}
+  → A ≃ B
+    -----
+  → A ≲ B
+≃-implies-≲  iso = record
+  { to      = to iso
+  ; from    = from iso
+  ; from∘to = from∘to iso
+  }
 \end{code}
 
 #### Exercise `_⇔_` {#iff}
@@ -441,6 +445,31 @@ record _⇔_ (A B : Set) : Set where
   field
     to   : A → B
     from : B → A
+
+⇔-refl : ∀ {A : Set} → A ⇔ A
+⇔-refl =
+  record
+  { to   = λ{x → x}
+  ; from = λ{x → x}
+  }
+
+⇔-sym : ∀ {A B : Set}
+  → A ⇔ B
+  → B ⇔ A
+⇔-sym r = record
+  { to   = _⇔_.from r
+  ; from = _⇔_.to r
+  }
+
+⇔-trans : ∀ {A B C : Set}
+  → A ⇔ B
+  → B ⇔ C
+  → A ⇔ C
+⇔-trans f g = record
+  { to = λ z → _⇔_.to g (_⇔_.to f z)
+  ; from = λ z → _⇔_.from f (_⇔_.from g z)
+  }
+
 \end{code}
 Show that equivalence is reflexive, symmetric, and transitive.
 
