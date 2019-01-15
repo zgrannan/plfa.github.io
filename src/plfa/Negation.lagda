@@ -237,6 +237,9 @@ but that when one holds the negation of the other two must also hold.
 <¬≡ z<s ()
 <¬≡ {suc m} {suc n} (s<s m<n) refl = ¬-elim (<¬≡ m<n) refl
 
+<¬> : ∀ { m n : ℕ} → m < n → ¬ n < m
+<¬> z<s ()
+<¬> {suc m} {suc n} (s<s m<n) (s<s n<m) = <¬> m<n n<m
 
 \end{code}
 
@@ -248,6 +251,15 @@ version of De Morgan's Law.
     ¬ (A ⊎ B) ≃ (¬ A) × (¬ B)
 
 This result is an easy consequence of something we've proved previously.
+\begin{code}
+
+⊎-dual-× : ∀ { A B : Set} → ¬ (A ⊎ B) ≃ (¬ A) × (¬ B)
+_≃_.to ⊎-dual-× = {!!}
+_≃_.from ⊎-dual-× = {!!}
+_≃_.from∘to ⊎-dual-× = {!!}
+_≃_.to∘from ⊎-dual-× = {!!}
+
+\end{code}
 
 Do we also have the following?
 
