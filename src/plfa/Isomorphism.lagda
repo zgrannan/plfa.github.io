@@ -573,6 +573,7 @@ which satisfy the following property:
 Using the above, establish that there is an embedding of `ℕ` into `Bin`.
 Why is there not an isomorphism?
 
+to (from nil) = x0 nil
 
 ## Standard library
 

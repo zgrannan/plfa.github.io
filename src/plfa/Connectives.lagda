@@ -232,6 +232,24 @@ corresponds to `(1 , (true , aa))`, which is a member of the latter.
 Show that `A ⇔ B` as defined [earlier][plfa.Isomorphism#iff]
 is isomorphic to `(A → B) × (B → A)`.
 
+\begin{code}
+
+record _⇔_ (A B : Set) : Set where
+  field
+    to   : A → B
+    from : B → A
+
+⇔≃× : ∀ { A B : Set} → A ⇔ B ≃ (A → B) × (B → A)
+⇔≃× = record
+  { from    = λ{ ⟨ f , t ⟩ → record { to = f ; from = t } }
+  ; to      = λ z → ⟨ _⇔_.to z , _⇔_.from z ⟩
+  ; from∘to = λ x → refl
+  ; to∘from = λ{ ⟨ f , t ⟩ → refl }
+  }
+
+\end{code}
+
+
 
 ## Truth is unit
 
@@ -417,6 +435,32 @@ commutative and associative _up to isomorphism_.
 #### Exercise `⊎-comm` (recommended)
 
 Show sum is commutative up to isomorphism.
+\begin{code}
+⊎-comm : ∀ { A B : Set} → A ⊎ B ≃ B ⊎ A
+⊎-comm = record
+  { from = λ
+    {
+       (inj₁ x) → inj₂ x
+      ;(inj₂ y) → inj₁ y
+    }
+  ; to   = λ
+    {
+    (inj₁ x) → inj₂ x
+    ;(inj₂ y) → inj₁ y
+    }
+  ; from∘to = λ
+    {
+    (inj₁ x) → refl
+    ;(inj₂ y) → refl
+    }
+  ; to∘from = λ
+    {
+    (inj₁ x) → refl
+    ;(inj₂ y) → refl
+    }
+  }
+\end{code}
+
 
 #### Exercise `⊎-assoc`
 
