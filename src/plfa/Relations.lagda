@@ -875,6 +875,7 @@ and back is the identity:
 
 \begin{code}
 
+\end{code}
 from : Bin → ℕ
 from nil       = 0
 from (x0 rest) = 2 * (from rest)
@@ -912,7 +913,6 @@ one-ident {x0 x} (y0 o) =
 can-ident : ∀ {x : Bin} → Can x → to (from x) ≡ x
 can-ident = {!!}
 
-\end{code}
 
 
 

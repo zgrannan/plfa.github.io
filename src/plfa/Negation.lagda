@@ -16,13 +16,14 @@ and classical logic.
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
 open import Function using (_∘_)
 open import plfa.Isomorphism using (_≃_; ≃-sym; ≃-trans; _≲_; extensionality)
+open import plfa.Relations using (_<_; s<s; z<s)
 \end{code}
 
 
@@ -194,6 +195,19 @@ Using negation, show that
 [strict inequality][plfa.Relations#strict-inequality]
 is irreflexive, that is, `n < n` holds for no `n`.
 
+\begin{code}
+
+<-irreflexive : ∀ {n : ℕ} → ¬ (n < n)
+<-irreflexive {zero} ()
+<-irreflexive {suc n} (_<_.s<s impl) =
+  let
+    ind : ¬(n < n)
+    ind = <-irreflexive {n}
+  in
+    ¬-elim ind impl
+
+\end{code}
+
 
 #### Exercise `trichotomy`
 
@@ -207,6 +221,24 @@ that is, for any naturals `m` and `n` exactly one of the following holds:
 
 Here "exactly one" means that not only one of the three must hold,
 but that when one holds the negation of the other two must also hold.
+
+\begin{code}
+
+≡¬< : ∀ { m n : ℕ } → m ≡ n → ¬ m < n
+≡¬< {zero}  {zero}  _  ()
+≡¬< {suc n} {zero}  () _
+≡¬< {zero}  {suc n} () _
+≡¬< {suc m} {suc n} refl  (s<s impl) = ¬-elim (≡¬< refl) impl
+
+≡¬> : ∀ { m n : ℕ } → m ≡ n → ¬ n < m
+≡¬> refl = ≡¬< refl
+
+<¬≡ : ∀ { m n : ℕ} → m < n → ¬ m ≡ n
+<¬≡ z<s ()
+<¬≡ {suc m} {suc n} (s<s m<n) refl = ¬-elim (<¬≡ m<n) refl
+
+
+\end{code}
 
 #### Exercise `⊎-dual-×` (recommended)
 

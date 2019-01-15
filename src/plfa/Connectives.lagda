@@ -544,6 +544,17 @@ is the identity of sums _up to isomorphism_.
 
 Show zero is the left identity of addition.
 
+\begin{code}
+
+⊥-identityˡ : ∀ (n : ℕ) → 0 + n ≡ n
+⊥-identityˡ _ = refl
+
+⊥-identityʳ : ∀ (n : ℕ) → n + 0 ≡ n
+⊥-identityʳ zero    = refl
+⊥-identityʳ (suc n) = cong suc (⊥-identityʳ n)
+
+\end{code}
+
 #### Exercise `⊥-identityʳ`
 
 Show zero is the right identity of addition. 
@@ -769,22 +780,39 @@ one of these laws is "more true" than the other.
 
 Show that the following property holds:
 \begin{code}
-postulate
-  ⊎-weak-× : ∀ {A B C : Set} → (A ⊎ B) × C → A ⊎ (B × C)
+⊎-weak-× : ∀ {A B C : Set}
+  → (A ⊎ B) × C
+  → A ⊎ (B × C)
+⊎-weak-× ⟨ inj₁ x , x₁ ⟩ = inj₁ x
+⊎-weak-× ⟨ inj₂ x , x₁ ⟩ = inj₂ ⟨ x , x₁ ⟩
 \end{code}
 This is called a _weak distributive law_. Give the corresponding
 distributive law, and explain how it relates to the weak version.
+
+⊎-distrib-× : ∀ { A B C : Set}
+  → (A ⊎ B) × C
+  → A × C ⊎ B × C
+
+The weak law states that if either A or B are true, and C is true, then either A is true or B and C are both true
+
+The distributive law is "stronger" because it shows the same premise implies
+that in face either A and C are both true or B and C are both true, respecting
+that C is true in either case
 
 
 #### Exercise `⊎×-implies-×⊎`
 
 Show that a disjunct of conjuncts implies a conjunct of disjuncts:
 \begin{code}
-postulate
-  ⊎×-implies-×⊎ : ∀ {A B C D : Set} → (A × B) ⊎ (C × D) → (A ⊎ C) × (B ⊎ D)
+⊎×-implies-×⊎ : ∀ {A B C D : Set} → (A × B) ⊎ (C × D) → (A ⊎ C) × (B ⊎ D)
+⊎×-implies-×⊎ (inj₁ ⟨ x , x₁ ⟩) = ⟨ (inj₁ x) , (inj₁ x₁) ⟩
+⊎×-implies-×⊎ (inj₂ ⟨ x , x₁ ⟩) = ⟨ (inj₂ x) , (inj₂ x₁) ⟩
 \end{code}
 Does the converse hold? If so, prove; if not, give a counterexample.
 
+×⊎-implies-⊎× : ∀ { A B C D : Set} → (A ⊎ B) × (C ⊎ D) → (A ⊎ C) × (B ⊎ D)
+
+No,  B and D does not imply A or C
 
 ## Standard library
 
