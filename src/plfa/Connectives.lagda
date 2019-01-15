@@ -466,6 +466,25 @@ Show sum is commutative up to isomorphism.
 
 Show sum is associative up to ismorphism. 
 
+\begin{code}
+⊎-assoc : ∀ {A B C : Set} → (A ⊎ B) ⊎ C ≃ A ⊎ (B ⊎ C)
+_≃_.to ⊎-assoc (inj₁ (inj₁ x)) = inj₁ x
+_≃_.to ⊎-assoc (inj₁ (inj₂ x)) = inj₂ (inj₁ x)
+_≃_.to ⊎-assoc (inj₂ x) = inj₂ (inj₂ x)
+
+_≃_.from ⊎-assoc (inj₁ x) = inj₁ (inj₁ x)
+_≃_.from ⊎-assoc (inj₂ (inj₁ x)) = inj₁ (inj₂ x)
+_≃_.from ⊎-assoc (inj₂ (inj₂ x)) = inj₂ x
+
+_≃_.from∘to ⊎-assoc (inj₂ x) = refl
+_≃_.from∘to ⊎-assoc (inj₁ (inj₁ x)) = refl
+_≃_.from∘to ⊎-assoc (inj₁ (inj₂ x)) = refl
+_≃_.to∘from ⊎-assoc (inj₁ x) = refl
+_≃_.to∘from ⊎-assoc (inj₂ (inj₁ x)) = refl
+_≃_.to∘from ⊎-assoc (inj₂ (inj₂ x)) = refl
+
+\end{code}
+
 ## False is empty
 
 False `⊥` never holds.  We formalise this idea by declaring
