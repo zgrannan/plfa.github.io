@@ -23,8 +23,8 @@ distributivity.
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong; cong-app)
 open Eq.≡-Reasoning
-open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat.Properties using (+-comm)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
+open import Data.Nat.Properties using (+-comm; *-comm; +-assoc)
 \end{code}
 
 
@@ -484,6 +484,82 @@ data Bin : Set where
   nil : Bin
   x0_ : Bin → Bin
   x1_ : Bin → Bin
+
+inc : Bin → Bin
+inc nil        = x1 nil
+inc (x0  rest) = x1 rest
+inc (x1  rest) = x0 (inc rest)
+
+toBin : ℕ → Bin
+toBin 0             = x0 nil
+toBin (suc x)       = inc (toBin x)
+
+fromBin : Bin → ℕ
+fromBin nil       = 0
+fromBin (x0 rest) = 2 * (fromBin rest)
+fromBin (x1 rest) = (2 * (fromBin rest)) + 1
+
+*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+*-distrib-+ zero n p    = refl
+*-distrib-+ (suc m) n p =
+  begin
+    (suc m + n) * p
+  ≡⟨ refl ⟩
+    suc (m + n) * p
+  ≡⟨ refl ⟩
+    p + ((m + n) * p)
+  ≡⟨ cong (p +_) (*-distrib-+ m n p) ⟩
+    p + (m * p + n * p)
+  ≡⟨ sym (+-assoc p (m * p) (n * p) ) ⟩
+    (p + m * p) + n * p
+  ≡⟨ refl ⟩
+    (suc m * p) + (n * p)
+  ∎
+
+lemma : ∀ (x : Bin) → fromBin (inc x) ≡ suc (fromBin x)
+lemma nil = refl
+lemma (x0 rest) =
+  begin
+    2 * fromBin rest + 1
+  ≡⟨ +-comm (2 * fromBin rest) 1 ⟩
+    suc (fromBin (x0 rest))
+  ∎
+
+lemma (x1 rest) =
+  begin
+    2 * fromBin (inc rest)
+  ≡⟨ cong (2 *_) (lemma rest) ⟩
+    2 * (1 + (fromBin rest))
+  ≡⟨ *-comm 2 (1 + fromBin rest) ⟩
+    (1 + (fromBin rest)) * 2
+  ≡⟨ *-distrib-+ 1 (fromBin rest) 2 ⟩
+    1 * 2 + fromBin rest * 2
+  ≡⟨ cong (1 * 2 +_) (*-comm (fromBin rest) 2) ⟩
+    1 + 1 + 2 * fromBin rest
+  ≡⟨ cong (1 +_) (+-comm 1 (2 * fromBin rest)) ⟩
+    1 + (2 * (fromBin rest) + 1)
+  ∎
+
+fromToBin : ∀ (n : ℕ) → fromBin (toBin n) ≡ n
+fromToBin 0 = refl
+fromToBin (suc n) =
+  begin
+    fromBin (inc (toBin n))
+  ≡⟨ lemma (toBin n) ⟩
+    suc (fromBin (toBin n))
+  ≡⟨ cong suc (fromToBin n) ⟩
+    suc n
+  ∎
+
+ℕ≲Bin : ℕ ≲ Bin
+ℕ≲Bin = record
+  { to      = toBin
+  ; from    = fromBin
+  ; from∘to = fromToBin
+  }
+
+
+
 \end{code}
 And ask you to define the following functions
 
