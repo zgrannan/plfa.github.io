@@ -254,11 +254,12 @@ This result is an easy consequence of something we've proved previously.
 \begin{code}
 
 ⊎-dual-× : ∀ { A B : Set} → ¬ (A ⊎ B) ≃ (¬ A) × (¬ B)
-_≃_.to ⊎-dual-× = {!!}
-_≃_.from ⊎-dual-× = {!!}
-_≃_.from∘to ⊎-dual-× = {!!}
-_≃_.to∘from ⊎-dual-× = {!!}
-
+⊎-dual-× = record
+  { to = λ z → ⟨ (λ x → z (inj₁ x)) , (λ x → z (inj₂ x)) ⟩
+  ; from = λ{ ⟨ a , b ⟩ (inj₁ x) → a x ; ⟨ a , b ⟩ (inj₂ y) → b y}
+  ; to∘from = refl
+  ; from∘to = {!!}
+  }
 \end{code}
 
 Do we also have the following?
