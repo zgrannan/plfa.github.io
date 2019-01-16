@@ -16,7 +16,9 @@ and classical logic.
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; cong; sym)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -253,12 +255,18 @@ version of De Morgan's Law.
 This result is an easy consequence of something we've proved previously.
 \begin{code}
 
+to′ : ∀ { A B : Set} → ¬ (A ⊎ B) → (¬ A) × (¬ B)
+to′ z = ⟨ (λ x → z (inj₁ x)) , (λ x → z (inj₂ x)) ⟩
+
+from′ : ∀ { A B : Set} → (¬ A) × (¬ B) → ¬ (A ⊎ B)
+from′ = λ{ ⟨ a , b ⟩ (inj₁ x) → a x ; ⟨ a , b ⟩ (inj₂ y) → b y}
+
 ⊎-dual-× : ∀ { A B : Set} → ¬ (A ⊎ B) ≃ (¬ A) × (¬ B)
 ⊎-dual-× = record
-  { to = λ z → ⟨ (λ x → z (inj₁ x)) , (λ x → z (inj₂ x)) ⟩
-  ; from = λ{ ⟨ a , b ⟩ (inj₁ x) → a x ; ⟨ a , b ⟩ (inj₂ y) → b y}
-  ; to∘from = refl
-  ; from∘to = {!!}
+  { to = to′
+  ; from = from′
+  ; to∘from = λ{x → refl}
+  ; from∘to = λ{ ¬A⊎B → assimilation (from′ (to′ ¬A⊎B)) ¬A⊎B }
   }
 \end{code}
 
