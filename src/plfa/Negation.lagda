@@ -277,6 +277,7 @@ Do we also have the following?
 If so, prove; if not, can you give a relation weaker than
 isomorphism that relates the two sides?
 
+Only holds in one direction (see notes)
 
 ## Intuitive and Classical logic
 
@@ -422,6 +423,53 @@ Consider the following principles:
 
 Show that each of these implies all the others.
 
+\begin{code}
+
+em→dne : ∀ { A : Set}
+  → ¬ ¬ A
+  → A
+
+em→disjunction : ∀ { A B : Set}
+  → (A → B)
+  → ¬ A ⊎ B
+
+em→dne {A} ¬¬A with em {A}
+em→dne {A} ¬¬A | inj₁ x = x
+em→dne {A} ¬¬A | inj₂ y with ¬¬A y
+em→dne {A} ¬¬A | inj₂ y | ()
+
+em→disjunction {A} f with em {A}
+em→disjunction {_} f | inj₁ x = inj₂ (f x)
+em→disjunction {_} f | inj₂ y = inj₁ y
+
+disjunction : ∀ { A B : Set } → ¬ A ⊎ B → A → B
+disjunction (inj₁ x) a with x a
+... | ()
+disjunction (inj₂ y) _ = y
+
+lemma : ∀ { A B : Set} → ¬ (A → B) → ¬ ( ¬ A ⊎ B)
+lemma = contraposition disjunction
+
+lemma′ : ∀ { A B : Set} → ¬ (¬ A ⊎ B) → A
+lemma′ {A} f with em {A}
+lemma′ {A} f | inj₁ x₁ = x₁
+lemma′ {A} f | inj₂ y with f (inj₁ y)
+... | ()
+
+em→peirce : ∀ { A B : Set} → ((A → B) → A) → A
+em→peirce {A} {B} p with em→disjunction p
+em→peirce {A} {B} p | inj₂ y = y
+em→peirce {A} {B} p | inj₁ x = lemma′ (lemma x)
+
+em→demorgan : ∀ { A B : Set} → ¬ ( ¬ A × ¬ B) → A ⊎ B
+em→demorgan {A} {B} f with ⟨ em {A} , em {B} ⟩
+em→demorgan {A} {B} f | ⟨ inj₁ x , _ ⟩      = inj₁ x
+em→demorgan {A} {B} f | ⟨ inj₂ y , inj₁ x ⟩ = inj₂ x
+em→demorgan {A} {B} f | ⟨ inj₂ y , inj₂ y₁ ⟩ with f ⟨ y , y₁ ⟩
+... | ()
+
+\end{code}
+
 
 #### Exercise `Stable` (stretch)
 
@@ -429,6 +477,14 @@ Say that a formula is _stable_ if double negation elimination holds for it:
 \begin{code}
 Stable : Set → Set
 Stable A = ¬ ¬ A → A
+
+¬-Stable : ∀ { A : Set } → A → Stable (¬ A)
+¬-Stable _ = ¬¬¬-elim
+
+Stable-Conj : ∀ { A B : Set} → (Stable A) → (Stable B) → Stable (A × B)
+Stable-Conj sa sb ¬¬AxB =
+    ⟨ sa (λ z → ¬¬AxB (λ z₁ → z (proj₁ z₁))) , sb (λ z → ¬¬AxB (λ z₁ → z (proj₂ z₁))) ⟩
+
 \end{code}
 Show that any negated formula is stable, and that the conjunction
 of two stable formulas is stable.
