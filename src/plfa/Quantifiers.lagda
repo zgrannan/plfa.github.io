@@ -88,9 +88,15 @@ dependent product is ambiguous.
 
 Show that universals distribute over conjunction:
 \begin{code}
-postulate
-  ∀-distrib-× : ∀ {A : Set} {B C : A → Set} →
-    (∀ (x : A) → B x × C x) ≃ (∀ (x : A) → B x) × (∀ (x : A) → C x)
+∀-distrib-× : ∀ {A : Set} {B C : A → Set} →
+  (∀ (x : A) → B x × C x) ≃ (∀ (x : A) → B x) × (∀ (x : A) → C x)
+
+∀-distrib-× {A} {B} {C} = record
+  { to = λ{ f → ⟨ (λ x₁ → proj₁ (f x₁)) , (λ x₁ → proj₂ (f x₁)) ⟩}
+  ; from = λ x y → ⟨ (proj₁ x y) , (proj₂ x y) ⟩
+  ; to∘from = λ y → refl
+  ; from∘to = λ x → refl
+  }
 \end{code}
 Compare this with the result (`→-distrib-×`) in
 Chapter [Connectives][plfa.Connectives].
@@ -99,11 +105,15 @@ Chapter [Connectives][plfa.Connectives].
 
 Show that a disjunction of universals implies a universal of disjunctions:
 \begin{code}
-postulate
-  ⊎∀-implies-∀⊎ : ∀ {A : Set} { B C : A → Set } →
-    (∀ (x : A) → B x) ⊎ (∀ (x : A) → C x)  →  ∀ (x : A) → B x ⊎ C x
+⊎∀-implies-∀⊎ : ∀ {A : Set} { B C : A → Set } →
+  (∀ (x : A) → B x) ⊎ (∀ (x : A) → C x) →
+  ∀ (x : A) → B x ⊎ C x
+⊎∀-implies-∀⊎ (inj₁ x) f = inj₁ (x f)
+⊎∀-implies-∀⊎ (inj₂ y) f = inj₂ (y f)
 \end{code}
 Does the converse hold? If so, prove; if not, explain why.
+
+No, the function could not be total across either domain
 
 
 ## Existentials
@@ -229,21 +239,29 @@ establish the isomorphism is identical to what we wrote when discussing
 
 Show that existentials distribute over disjunction:
 \begin{code}
-postulate
-  ∃-distrib-⊎ : ∀ {A : Set} {B C : A → Set} →
-    ∃[ x ] (B x ⊎ C x) ≃ (∃[ x ] B x) ⊎ (∃[ x ] C x)
+∃-distrib-⊎ : ∀ {A : Set} {B C : A → Set} →
+  ∃[ x ] (B x ⊎ C x) ≃ (∃[ x ] B x) ⊎ (∃[ x ] C x)
+∃-distrib-⊎ = record
+  { to = λ{ ⟨ x , inj₁ y ⟩ → inj₁ ⟨ x , y ⟩ ; ⟨ x , inj₂ y ⟩ → inj₂ ⟨ x , y ⟩ }
+  ; from = λ { (inj₁ ⟨ x , y ⟩ ) → ⟨ x , inj₁ y ⟩ ; (inj₂ ⟨ x , y ⟩ ) → ⟨ x , inj₂ y ⟩ }
+  ; to∘from = λ{ (inj₁ ⟨ x , y ⟩ ) → refl ; (inj₂ ⟨ x , y ⟩ ) → refl }
+  ; from∘to = λ{ ⟨ x , inj₁ y ⟩ → refl ; ⟨ x , inj₂ y ⟩ → refl }
+  }
 \end{code}
 
 #### Exercise `∃×-implies-×∃`
 
 Show that an existential of conjunctions implies a conjunction of existentials:
 \begin{code}
-postulate
-  ∃×-implies-×∃ : ∀ {A : Set} { B C : A → Set } →
-    ∃[ x ] (B x × C x) → (∃[ x ] B x) × (∃[ x ] C x)
+∃×-implies-×∃ : ∀ {A : Set} { B C : A → Set } →
+  ∃[ x ] (B x × C x) → (∃[ x ] B x) × (∃[ x ] C x)
+
+∃×-implies-×∃ ⟨ a , ⟨ b , c ⟩ ⟩ = ⟨ ⟨ a , b ⟩ , ⟨ a , c ⟩ ⟩
+
 \end{code}
 Does the converse hold? If so, prove; if not, explain why.
 
+No, since the x in (∃[ x ] B x) is not necessarily the same as in  (∃[ x ] C x)
 
 ## An existential example
 
@@ -351,6 +369,25 @@ This completes the proof in the backward direction.
 How do the proofs become more difficult if we replace `m * 2` and `1 + m * 2`
 by `2 * m` and `2 * m + 1`?  Rewrite the proofs of `∃-even` and `∃-odd` when
 restated in this way.
+
+\begin{code}
+
+∃-even′ : ∀ {n : ℕ} → ∃[ m ] ( 2 * m ≡ n)     → even n
+∃-odd′  : ∀ {n : ℕ} → ∃[ m ] ( 2 * m + 1 ≡ n) → odd n
+
+lemma : ∀ {n : ℕ} → suc (n * 2) ≡ n + 1 * (suc n)
+lemma = {!!}
+
+lemma′ : ∀ {n : ℕ} → n + 1 * n + 1 ≡ 2 * n + 1
+lemma′ = {!!}
+
+∃-even′ ⟨ zero  , refl ⟩ = even-zero
+∃-even′ ⟨ suc m , refl ⟩ = even-suc (∃-odd′ ⟨ m , ? ⟩)
+
+∃-odd′ {zero} ⟨ m , ev ⟩ = {!!}
+∃-odd′ {suc n} ⟨ m , ev ⟩ = odd-suc {n} (∃-even′ ⟨ m , {!!} ⟩)
+
+\end{code}
 
 #### Exercise `∃-+-≤`
 
