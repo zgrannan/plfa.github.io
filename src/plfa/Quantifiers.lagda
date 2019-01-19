@@ -18,8 +18,10 @@ This chapter introduces universal and existential quantification.
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong)
 open Eq.≡-Reasoning
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
-open import Data.Nat.Properties.Simple using (+-suc)
+open import Data.Empty using (⊥-elim)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_ ; _≤_ )
+open import Data.Nat.Properties using (suc-injective; i+j≡0⇒j≡0 ; n≤m+n ; +-identityʳ)
+open import Data.Nat.Properties.Simple using (+-suc; +-comm ; +-assoc ; *-comm)
 open import Relation.Nullary using (¬_)
 open import Function using (_∘_)
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
@@ -370,29 +372,20 @@ How do the proofs become more difficult if we replace `m * 2` and `1 + m * 2`
 by `2 * m` and `2 * m + 1`?  Rewrite the proofs of `∃-even` and `∃-odd` when
 restated in this way.
 
-\begin{code}
-
-∃-even′ : ∀ {n : ℕ} → ∃[ m ] ( 2 * m ≡ n)     → even n
-∃-odd′  : ∀ {n : ℕ} → ∃[ m ] ( 2 * m + 1 ≡ n) → odd n
-
-lemma : ∀ {n : ℕ} → suc (n * 2) ≡ n + 1 * (suc n)
-lemma = {!!}
-
-lemma′ : ∀ {n : ℕ} → n + 1 * n + 1 ≡ 2 * n + 1
-lemma′ = {!!}
-
-∃-even′ ⟨ zero  , refl ⟩ = even-zero
-∃-even′ ⟨ suc m , refl ⟩ = even-suc (∃-odd′ ⟨ m , ? ⟩)
-
-∃-odd′ {zero} ⟨ m , ev ⟩ = {!!}
-∃-odd′ {suc n} ⟨ m , ev ⟩ = odd-suc {n} (∃-even′ ⟨ m , {!!} ⟩)
-
-\end{code}
-
 #### Exercise `∃-+-≤`
 
 Show that `y ≤ z` holds if and only if there exists a `x` such that
 `x + y ≡ z`.
+
+\begin{code}
+∃-+-≤ : ∀ {y z : ℕ} → ∃[ x ]( x + y ≡ z) → y ≤ z
+∃-+-≤ {y} ⟨ x , refl ⟩ = n≤m+n x y
+
+≤-+-∃ : ∀ {y z : ℕ} → y ≤ z → ∃[ x ]( x + y ≡ z)
+≤-+-∃ {_} {z} _≤_.z≤n = ⟨ z , +-identityʳ z ⟩
+≤-+-∃ {suc y} {suc z} (_≤_.s≤s ev) with ≤-+-∃ {y} {z} ev
+... | ⟨ a , refl ⟩ = ⟨ a , +-suc a y ⟩
+\end{code}
 
 
 ## Existentials, Universals, and Negation
@@ -434,13 +427,17 @@ requires extensionality.
 
 Show that existential of a negation implies negation of a universal:
 \begin{code}
-postulate
-  ∃¬-implies-¬∀ : ∀ {A : Set} {B : A → Set}
-    → ∃[ x ] (¬ B x)
-      --------------
-    → ¬ (∀ x → B x)
+∃¬-implies-¬∀ : ∀ {A : Set} {B : A → Set}
+  → ∃[ x ] (¬ B x)
+  → ¬ (∀ x → B x)
+
+∃¬-implies-¬∀ ⟨ x , y ⟩ f = y (f x)
+
+
 \end{code}
 Does the converse hold? If so, prove; if not, explain why.
+
+Not w/ intuitionistic logic
 
 
 #### Exercise `Bin-isomorphism` (stretch) {#Bin-isomorphism}

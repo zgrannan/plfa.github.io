@@ -875,38 +875,39 @@ and back is the identity:
 
 \begin{code}
 
-\end{code}
 from : Bin → ℕ
 from nil       = 0
 from (x0 rest) = 2 * (from rest)
 from (x1 rest) = (2 * (from rest)) + 1
 
+one-not-zero : ∀ {x : Bin} → One x → ¬(from x ≡ 0)
+one-not-zero = {!!}
+
 lemma : ∀ {x : Bin} → One x → to (2 * from x) ≡ x0 x
-lemma one    = refl
-lemma {x} (y0 o) =
+lemma           one    = refl
+lemma {x0 rest} (y0 p) =
   begin
-    to (2 * from x)
+    to (2 * (2 * from rest))
   ≡⟨ {!!} ⟩
-   (x0 x)
+    x0 (x0 rest)
   ∎
-lemma (y1 o) = {!!}
+lemma {x1 rest} (y1 p) = {!!}
+
 
 one-ident : ∀ {x : Bin} → One x → to (from x) ≡ x
 one-ident one    = refl
 one-ident {x1 x} (y1 o) =
   begin
     to (2 * from x + 1)
-  ≡⟨ {!!} ⟩
-    to (suc (2 * from x))
-  ≡⟨ {!!} ⟩
+  ≡⟨ cong to (+-comm (2 * from x) 1) ⟩
     inc (to (2 * from x))
-  ≡⟨ {!!} ⟩
+  ≡⟨ cong inc (lemma o) ⟩
     x1 x
   ∎
 one-ident {x0 x} (y0 o) =
   begin
     to (2 * from x)
-  ≡⟨ {!!} ⟩
+  ≡⟨ lemma o ⟩
     x0 x
   ∎
 
@@ -914,6 +915,7 @@ can-ident : ∀ {x : Bin} → Can x → to (from x) ≡ x
 can-ident = {!!}
 
 
+\end{code}
 
 
 ## Standard library
