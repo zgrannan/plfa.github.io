@@ -297,8 +297,18 @@ trouble normalising evidence of negation.)
 
 Analogous to the function above, define a function to decide strict inequality:
 \begin{code}
-postulate
-  _<?_ : ∀ (m n : ℕ) → Dec (m < n)
+
+¬s<s : ∀ {m n : ℕ} → ¬ (m < n) → ¬ (suc m < suc n)
+¬s<s ¬m<n (s<s ev) = ¬m<n ev
+
+_<?_ : ∀ (m n : ℕ) → Dec (m < n)
+zero  <? zero  = no (λ ())
+zero  <? suc n = yes z<s
+suc m <? zero  = no (λ ())
+suc m <? suc n with m <? n
+(suc m <? suc n) | yes m<n  = yes (s<s m<n)
+(suc m <? suc n) | no  ¬m<n = no (¬s<s ¬m<n)
+
 \end{code}
 
 #### Exercise `_≡ℕ?_`

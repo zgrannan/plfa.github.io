@@ -17,7 +17,7 @@ This chapter introduces universal and existential quantification.
 \begin{code}
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong)
-open Eq.≡-Reasoning
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_ ; _≤_ )
 open import Data.Nat.Properties using (suc-injective; i+j≡0⇒j≡0 ; n≤m+n ; +-identityʳ)
@@ -26,7 +26,8 @@ open import Relation.Nullary using (¬_)
 open import Function using (_∘_)
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import plfa.Isomorphism using (_≃_; ≃-sym; ≃-trans; _≲_; extensionality)
+open import plfa.Isomorphism using (_≃_; ≃-sym; ≃-trans; _≲_; extensionality; fromToBin)
+open import plfa.Relations using (Bin; Can; to-can; to; from)
 \end{code}
 
 
@@ -127,7 +128,6 @@ proposition `Σ[ x ∈ A ] B x` holds if for some term `M` of type
 the proposition `B x` with each free occurrence of `x` replaced by
 `M`.  Variable `x` appears free in `B x` but bound in
 `Σ[ x ∈ A ] B x`.
-
 We formalise existential quantification by declaring a suitable
 inductive type:
 \begin{code}
@@ -447,12 +447,10 @@ Recall that Exercises
 [Bin-laws][plfa.Induction#Bin-laws], and
 [Bin-predicates][plfa.Relations#Bin-predicates]
 define a datatype of bitstrings representing natural numbers:
-\begin{code}
 data Bin : Set where
   nil : Bin
   x0_ : Bin → Bin
   x1_ : Bin → Bin
-\end{code}
 And ask you to define the following functions and predicates:
 
     to   : ℕ → Bin
@@ -472,6 +470,49 @@ And to establish the following properties:
 
 Using the above, establish that there is an isomorphism between `ℕ` and
 `∃[ x ](Can x)`.
+
+
+\begin{code}
+
+fromto : ∀ {n : ℕ} → from (to n) ≡ n
+fromto = {!!}
+
+tofrom : ∀ {x : Bin} → Can x → to (from x) ≡ x
+tofrom = {!!}
+
+from-bin-iso : ∃[ x ](Can x) → ℕ
+from-bin-iso ⟨ x , _ ⟩ = from x
+
+to-bin-iso : ∀(n : ℕ) → ∃[ x ](Can x)
+to-bin-iso n = ⟨ to n , to-can {n} ⟩
+
+from∘to-bin-iso : ∀(n : ℕ) → from-bin-iso (to-bin-iso n) ≡ n
+from∘to-bin-iso n rewrite (fromto {n}) = refl
+
+to∘from-bin-iso : (e : ∃[ x ](Can x)) → to-bin-iso (from-bin-iso e) ≡ e
+
+to∘from-bin-iso ⟨ x , y ⟩ =
+  begin
+    to-bin-iso (from-bin-iso ⟨ x , y ⟩ )
+  ≡⟨ refl ⟩
+    to-bin-iso (from x)
+  ≡⟨ refl ⟩
+    ⟨ to (from x) , to-can {from x} ⟩
+  ≡⟨ {!!} ⟩
+    ⟨ x , {!!} ⟩
+  ≡⟨ {!!} ⟩
+    ⟨ x , y ⟩
+  ∎
+
+
+bin-iso : ℕ ≃ ∃[ x ](Can x)
+bin-iso = record {
+    from = from-bin-iso
+  ; to = to-bin-iso
+  ; from∘to = from∘to-bin-iso
+  ; to∘from = to∘from-bin-iso
+  }
+\end{code}
 
 
 ## Standard Prelude
