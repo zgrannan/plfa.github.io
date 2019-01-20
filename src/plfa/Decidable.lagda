@@ -315,8 +315,17 @@ suc m <? suc n with m <? n
 
 Define a function to decide whether two naturals are equal:
 \begin{code}
-postulate
-  _≡ℕ?_ : ∀ (m n : ℕ) → Dec (m ≡ n)
+
+¬s≡ℕs : ∀{m n : ℕ} → ¬(m ≡ n) → ¬(suc m ≡ suc n)
+¬s≡ℕs m≢n refl = m≢n refl
+
+_≡ℕ?_ : ∀ (m n : ℕ) → Dec (m ≡ n)
+zero  ≡ℕ? zero  = yes refl
+zero  ≡ℕ? suc n = no (λ ())
+suc m ≡ℕ? zero  = no (λ ())
+suc m ≡ℕ? suc n with m ≡ℕ? n
+(suc m ≡ℕ? suc n) | yes x = yes (cong suc x)
+(suc m ≡ℕ? suc n) | no x  = no (¬s≡ℕs x)
 \end{code}
 
 
@@ -543,22 +552,45 @@ on which matches; but either is equally valid.
 
 Show that erasure relates corresponding boolean and decidable operations:
 \begin{code}
-postulate
-  ∧-× : ∀ {A B : Set} (x : Dec A) (y : Dec B) → ⌊ x ⌋ ∧ ⌊ y ⌋ ≡ ⌊ x ×-dec y ⌋
-  ∨-× : ∀ {A B : Set} (x : Dec A) (y : Dec B) → ⌊ x ⌋ ∨ ⌊ y ⌋ ≡ ⌊ x ⊎-dec y ⌋
-  not-¬ : ∀ {A : Set} (x : Dec A) → not ⌊ x ⌋ ≡ ⌊ ¬? x ⌋
+∧-× : ∀ {A B : Set} (x : Dec A) (y : Dec B) → ⌊ x ⌋ ∧ ⌊ y ⌋ ≡ ⌊ x ×-dec y ⌋
+∧-× (yes x) (yes x₁) = refl
+∧-× (yes x) (no x₁) = refl
+∧-× (no x) (yes x₁) = refl
+∧-× (no x) (no x₁) = refl
+
+∨-× : ∀ {A B : Set} (x : Dec A) (y : Dec B) → ⌊ x ⌋ ∨ ⌊ y ⌋ ≡ ⌊ x ⊎-dec y ⌋
+∨-× (yes x) (yes x₁) = refl
+∨-× (yes x) (no x₁) = refl
+∨-× (no x) (yes x₁) = refl
+∨-× (no x) (no x₁) = refl
+
+not-¬ : ∀ {A : Set} (x : Dec A) → not ⌊ x ⌋ ≡ ⌊ ¬? x ⌋
+not-¬ (yes x) = refl
+not-¬ (no x) = refl
 \end{code}
-  
+
 #### Exercise `iff-erasure` (recommended)
 
-Give analogues of the `_⇔_` operation from 
+Give analogues of the `_⇔_` operation from
 Chapter [Isomorphism][plfa.Isomorphism#iff],
 operation on booleans and decidables, and also show the corresponding erasure:
 \begin{code}
-postulate
-  _iff_ : Bool → Bool → Bool
-  _⇔-dec_ : ∀ {A B : Set} → Dec A → Dec B → Dec (A ⇔ B)
-  iff-⇔ : ∀ {A B : Set} (x : Dec A) (y : Dec B) → ⌊ x ⌋ iff ⌊ y ⌋ ≡ ⌊ x ⇔-dec y ⌋  
+_iff_ : Bool → Bool → Bool
+true  iff true  = true
+false iff false = true
+_     iff _     = false
+
+_⇔-dec_ : ∀ {A B : Set} → Dec A → Dec B → Dec (A ⇔ B)
+yes x  ⇔-dec yes x₁ = yes (record { to = λ _ → x₁ ; from = λ _ → x })
+yes x  ⇔-dec no  x₁ = no (λ z → x₁ (_⇔_.to z x))
+no  x  ⇔-dec yes x₁ = no (λ z → x (_⇔_.from z x₁))
+no  x  ⇔-dec no  y  = yes (record {to = λ a → ⊥-elim (x a); from = λ b → ⊥-elim (y b) })
+
+iff-⇔ : ∀ {A B : Set} (x : Dec A) (y : Dec B) → ⌊ x ⌋ iff ⌊ y ⌋ ≡ ⌊ x ⇔-dec y ⌋
+iff-⇔ (yes x) (yes x₁) = refl
+iff-⇔ (yes x) (no x₁) = refl
+iff-⇔ (no x) (yes x₁) = refl
+iff-⇔ (no x) (no x₁) = refl
 \end{code}
 
 
