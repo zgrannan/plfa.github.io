@@ -20,7 +20,7 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open Eq using (_≡_; refl; cong; sym)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
-open import Data.Nat.Properties using (+-comm; +-suc; *-comm; +-assoc)
+open import Data.Nat.Properties using (+-comm; +-suc; *-comm; +-assoc; *-distrib-+; *-identityˡ)
 open import Data.List using (List; []; _∷_)
 open import Function using (id; _∘_)
 open import Relation.Nullary using (¬_)
@@ -880,21 +880,50 @@ from nil       = 0
 from (x0 rest) = 2 * (from rest)
 from (x1 rest) = (2 * (from rest)) + 1
 
-one-not-zero : ∀ {x : Bin} → One x → ¬(from x ≡ 0)
-one-not-zero = {!!}
-
-lemma : ∀ {x : Bin} → One x → to (2 * from x) ≡ x0 x
-lemma           one    = refl
-lemma {x0 rest} (y0 p) =
+lemma′ : ∀ {n : ℕ} → to (2 * suc n) ≡ x0 (to (suc n))
+lemma′ {zero} = refl
+lemma′ {suc n} rewrite *-identityˡ (suc (suc n)) =
   begin
-    to (2 * (2 * from rest))
-  ≡⟨ {!!} ⟩
-    x0 (x0 rest)
+    to ( (suc (suc n)) + (suc (suc n)))
+  ≡⟨ cong to (+-suc (suc (suc n)) (suc n)) ⟩
+    to (suc ( (suc (suc n)) + suc n))
+  ≡⟨ cong (λ x → to (suc x)) (+-comm (suc (suc n)) (suc n) ) ⟩
+    to (suc ( (suc n) + (suc (suc n))))
+  ≡⟨ cong (λ x → to (suc x)) (+-suc (suc n) (suc n)) ⟩
+    to ( suc( suc ( (suc n) + suc n)))
+  ≡⟨ cong (λ x → to (suc (suc (suc n + x)))) (sym (*-identityˡ (suc n))) ⟩
+    inc (inc (to (2 * suc n)))
+ ≡⟨ cong (λ x → inc (inc x)) (lemma′ {n}) ⟩
+    x0 (to (suc (suc n)))
   ∎
-lemma {x1 rest} (y1 p) = {!!}
 
+one-not-zero : ∀ {x : Bin} → One x → ¬(from x ≡ zero)
+one-not-zero one                       = λ ()
+one-not-zero {x0 rest} (y0 obs) with from rest | one-not-zero obs
+one-not-zero {x0 rest} (y0 obs) | zero  | ev‵ = λ _ → ev‵ refl
+one-not-zero {x0 rest} (y0 obs) | suc p | ev‵ = λ ()
+
+one-not-zero {x1 rest} (y1 obs) with from rest | one-not-zero obs
+one-not-zero {x1 rest} (y1 obs) | zero  | q = λ _ → q refl
+one-not-zero {x1 rest} (y1 obs) | suc p | q = λ ()
+
+lemma2 : ∀ {n : ℕ} → {x : Bin} → One x → from x ≡ n → to (2 * n) ≡ x0 (to n)
+lemma2 {zero} {x} obs ev with (one-not-zero obs) ev
+... | ()
+lemma2 {suc n} obs ev = lemma′ {n}
 
 one-ident : ∀ {x : Bin} → One x → to (from x) ≡ x
+
+lemma : ∀ {x : Bin} → One x → to (2 * from x) ≡ x0 x
+lemma {x} obs =
+  begin
+    to (2 * from x)
+  ≡⟨ lemma2 obs refl ⟩
+    x0 (to (from x))
+  ≡⟨ cong (λ y → x0 y) (one-ident obs) ⟩
+   x0 x
+  ∎
+
 one-ident one    = refl
 one-ident {x1 x} (y1 o) =
   begin
@@ -912,7 +941,8 @@ one-ident {x0 x} (y0 o) =
   ∎
 
 can-ident : ∀ {x : Bin} → Can x → to (from x) ≡ x
-can-ident = {!!}
+can-ident zero      = refl
+can-ident (can obs) = one-ident obs
 
 
 \end{code}
