@@ -28,7 +28,7 @@ open import Relation.Nullary using (¬_; Dec; yes; no)
 open import Data.Product using (_×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
 open import Function using (_∘_)
 open import Level using (Level)
-open import plfa.Isomorphism using (_≃_; _⇔_)
+open import plfa.Isomorphism using (_≃_; _⇔_; extensionality)
 \end{code}
 
 
@@ -350,9 +350,22 @@ list, and the sum of the numbers up to `n - 1` is `n * (n - 1) / 2`.
 Show that the reverse of one list appended to another is the
 reverse of the second appended to the reverse of the first:
 \begin{code}
-postulate
-  reverse-++-commute : ∀ {A : Set} {xs ys : List A}
+reverse-++-commute : ∀ {A : Set} {xs ys : List A}
     → reverse (xs ++ ys) ≡ reverse ys ++ reverse xs
+reverse-++-commute {A} {[]} {ys} =
+  begin
+    reverse ys
+  ≡⟨ sym (++-identityʳ (reverse ys)) ⟩
+    reverse ys ++ reverse []
+  ∎
+reverse-++-commute {A} {x ∷ xs} {ys} =
+  begin
+    reverse (xs ++ ys) ++ [ x ]
+  ≡⟨ cong (_++ [ x ]) (reverse-++-commute {A} {xs} {ys}) ⟩
+    (reverse ys ++ reverse xs) ++ [ x ]
+  ≡⟨ ++-assoc (reverse ys) (reverse xs) [ x ] ⟩
+    reverse ys ++ reverse (x ∷ xs)
+  ∎
 \end{code}
 
 #### Exercise `reverse-involutive` (recommended)
@@ -360,9 +373,17 @@ postulate
 A function is an _involution_ if when applied twice it acts
 as the identity function.  Show that reverse is an involution:
 \begin{code}
-postulate
-  reverse-involutive : ∀ {A : Set} {xs : List A}
-    → reverse (reverse xs) ≡ xs
+reverse-involutive : ∀ {A : Set} {xs : List A}
+  → reverse (reverse xs) ≡ xs
+reverse-involutive {A} {[]} = refl
+reverse-involutive {A} {x ∷ xs} =
+  begin
+    reverse (reverse xs ++ [ x ])
+  ≡⟨ reverse-++-commute {A} {reverse xs} {[ x ]} ⟩
+    x ∷ reverse (reverse xs)
+  ≡⟨ cong (x ∷_) reverse-involutive ⟩
+    x ∷ xs
+  ∎
 \end{code}
 
 
@@ -527,12 +548,19 @@ _n_ functions.
 
 Prove that the map of a composition is equal to the composition of two maps:
 \begin{code}
-postulate
-  map-compose : ∀ {A B C : Set} {f : A → B} {g : B → C}
-    → map (g ∘ f) ≡ map g ∘ map f
+map-compose : ∀ {A B C : Set} {f : A → B} {g : B → C}
+  → map (g ∘ f) ≡ map g ∘ map f
+
+mc : ∀ {A B C : Set} {f : A → B} {g : B → C}
+  → (lis : List A)
+  → map (g ∘ f) lis ≡ (map g ∘ map f) lis
+mc []                           = refl
+mc {A} {B} {C} {f} {g} (x ∷ xs) = cong (g (f x) ∷_) (mc xs)
+
+map-compose {A} {B} {C} {f} {g} = extensionality mc
+
 \end{code}
 The last step of the proof requires extensionality.
-
 #### Exercise `map-++-commute`
 
 Prove the following relationship between map and append:
