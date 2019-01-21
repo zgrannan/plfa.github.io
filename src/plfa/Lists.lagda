@@ -19,18 +19,19 @@ examples of polymorphic types and higher-order functions.
 \begin{code}
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong)
-open Eq.≡-Reasoning
+import Relation.Binary.PartialOrderReasoning as P
 open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _≤_; s≤s; z≤n)
 open import Data.Nat.Properties using
-  (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ)
+  (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ; *-distribʳ-+
+  ;*-comm; *-distribˡ-∸; m+n∸m≡n
+  )
 open import Relation.Nullary using (¬_; Dec; yes; no)
 open import Data.Product using (_×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
 open import Function using (_∘_)
 open import Level using (Level)
 open import plfa.Isomorphism using (_≃_; _⇔_; extensionality)
 \end{code}
-
 
 ## Lists
 
@@ -137,7 +138,7 @@ _ =
     0 ∷ 1 ∷ 2 ∷ ([] ++ 3 ∷ 4 ∷ [])
   ≡⟨⟩
     0 ∷ 1 ∷ 2 ∷ 3 ∷ 4 ∷ []
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 Appending two lists requires time linear in the
 number of elements in the first list.
@@ -157,7 +158,8 @@ about numbers.  Here is the proof that append is associative:
     ys ++ zs
   ≡⟨⟩
     [] ++ (ys ++ zs)
-  ∎
+  ∎ where open Eq.≡-Reasoning
+
 ++-assoc (x ∷ xs) ys zs =
   begin
     (x ∷ xs ++ ys) ++ zs
@@ -167,7 +169,7 @@ about numbers.  Here is the proof that append is associative:
     x ∷ (xs ++ (ys ++ zs))
   ≡⟨⟩
     x ∷ xs ++ (ys ++ zs)
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 The proof is by induction on the first argument. The base case instantiates
 to `[]`, and follows by straightforward computation.
@@ -196,7 +198,7 @@ That it is a left identity is immediate from the definition:
     [] ++ xs
   ≡⟨⟩
     xs
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 That it is a right identity follows by simple induction:
 \begin{code}
@@ -206,7 +208,7 @@ That it is a right identity follows by simple induction:
     [] ++ []
   ≡⟨⟩
     []
-  ∎
+  ∎ where open Eq.≡-Reasoning
 ++-identityʳ (x ∷ xs) =
   begin
     (x ∷ xs) ++ []
@@ -214,7 +216,7 @@ That it is a right identity follows by simple induction:
     x ∷ (xs ++ [])
   ≡⟨ cong (x ∷_) (++-identityʳ xs) ⟩
     x ∷ xs
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 As we will see later,
 these three properties establish that `_++_` and `[]` form
@@ -247,7 +249,7 @@ _ =
     suc (suc (suc (length {ℕ} [])))
   ≡⟨⟩
     suc (suc (suc zero))
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 Computing the length of a list requires time
 linear in the number of elements in the list.
@@ -271,7 +273,8 @@ length-++ {A} [] ys =
     length ys
   ≡⟨⟩
     length {A} [] + length ys
-  ∎
+  ∎ where open Eq.≡-Reasoning
+
 length-++ (x ∷ xs) ys =
   begin
     length ((x ∷ xs) ++ ys)
@@ -281,7 +284,7 @@ length-++ (x ∷ xs) ys =
     suc (length xs + length ys)
   ≡⟨⟩
     length (x ∷ xs) + length ys
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 The proof is by induction on the first arugment. The base case
 instantiates to `[]`, and follows by straightforward computation.  As
@@ -336,7 +339,7 @@ _ =
     2 ∷ 1 ∷ 0 ∷ []
   ≡⟨⟩
     [ 2 , 1 , 0 ]
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 Reversing a list in this way takes time _quadratic_ in the length of
 the list. This is because reverse ends up appending lists of lengths
@@ -357,7 +360,7 @@ reverse-++-commute {A} {[]} {ys} =
     reverse ys
   ≡⟨ sym (++-identityʳ (reverse ys)) ⟩
     reverse ys ++ reverse []
-  ∎
+  ∎ where open Eq.≡-Reasoning
 reverse-++-commute {A} {x ∷ xs} {ys} =
   begin
     reverse (xs ++ ys) ++ [ x ]
@@ -365,7 +368,7 @@ reverse-++-commute {A} {x ∷ xs} {ys} =
     (reverse ys ++ reverse xs) ++ [ x ]
   ≡⟨ ++-assoc (reverse ys) (reverse xs) [ x ] ⟩
     reverse ys ++ reverse (x ∷ xs)
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 #### Exercise `reverse-involutive` (recommended)
@@ -383,7 +386,7 @@ reverse-involutive {A} {x ∷ xs} =
     x ∷ reverse (reverse xs)
   ≡⟨ cong (x ∷_) reverse-involutive ⟩
     x ∷ xs
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 
@@ -412,7 +415,7 @@ shunt-reverse [] ys =
     ys
   ≡⟨⟩
     reverse [] ++ ys
-  ∎
+  ∎ where open Eq.≡-Reasoning
 shunt-reverse (x ∷ xs) ys =
   begin
     shunt (x ∷ xs) ys
@@ -426,7 +429,7 @@ shunt-reverse (x ∷ xs) ys =
     (reverse xs ++ [ x ]) ++ ys
   ≡⟨⟩
     reverse (x ∷ xs) ++ ys
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 The proof is by induction on the first argument.
 The base case instantiates to `[]`, and follows by straightforward computation.
@@ -460,7 +463,7 @@ reverses xs =
     reverse xs ++ []
   ≡⟨ ++-identityʳ (reverse xs) ⟩  
     reverse xs
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 Here is an example showing fast reverse of the list `[ 0 , 1 , 2 ]`:
@@ -479,7 +482,7 @@ _ =
     shunt [] (2 ∷ 1 ∷ 0 ∷ [])
   ≡⟨⟩
     2 ∷ 1 ∷ 0 ∷ []
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 Now the time to reverse a list is linear in the length of the list.
 
@@ -514,7 +517,7 @@ _ =
     suc 0 ∷ suc 1 ∷ suc 2 ∷ []
   ≡⟨⟩
     1 ∷ 2 ∷ 3 ∷ []
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 Map requires time linear in the length of the list.
 
@@ -533,7 +536,7 @@ _ =
     map suc [ 0 , 1 , 2 ]
   ≡⟨⟩
     [ 1 , 2 , 3 ]
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 Any type that is parameterised on another type, such as lists, has a
@@ -565,9 +568,11 @@ The last step of the proof requires extensionality.
 
 Prove the following relationship between map and append:
 \begin{code}
-postulate
-  map-++-commute : ∀ {A B : Set} {f : A → B} {xs ys : List A}
-   →  map f (xs ++ ys) ≡ map f xs ++ map f ys
+map-++-commute : ∀ {A B : Set} {f : A → B} {xs ys : List A}
+  →  map f (xs ++ ys) ≡ map f xs ++ map f ys
+
+map-++-commute {A} {B} {f} {[]} {ys} = refl
+map-++-commute {A} {B} {f} {x ∷ xs} {ys} rewrite map-++-commute {A} {B} {f} {xs} {ys} = refl
 \end{code}
 
 #### Exercise `map-Tree`
@@ -581,9 +586,10 @@ data Tree (A B : Set) : Set where
 \end{code}
 Define a suitable map operator over trees:
 \begin{code}
-postulate
-  map-Tree : ∀ {A B C D : Set}
-    → (A → C) → (B → D) → Tree A B → Tree C D
+map-Tree : ∀ {A B C D : Set}
+  → (A → C) → (B → D) → Tree A B → Tree C D
+map-Tree f _ (leaf x)      = leaf (f x)
+map-Tree f g (node t x t₁) = node (map-Tree f g t) (g x) (map-Tree f g t₁)
 \end{code}
 
 
@@ -617,7 +623,7 @@ _ =
     1 + (2 + (3 + (4 + foldr _+_ 0 [])))
   ≡⟨⟩
     1 + (2 + (3 + (4 + 0)))
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 Fold requires time linear in the length of the list.
 
@@ -636,7 +642,7 @@ _ =
     foldr _+_ 0 [ 1 , 2 , 3 , 4 ]
   ≡⟨⟩
     10
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 Just as the list type has two constructors, `[]` and `_∷_`,
@@ -652,13 +658,23 @@ For example:
 
     product [ 1 , 2 , 3 , 4 ] ≡ 24
 
+\begin{code}
+product : List ℕ → ℕ
+product = foldr _*_ 1
+
+_ : product [ 1 , 2 , 3 , 4 ] ≡ 24
+_ = refl
+\end{code}
+
 #### Exercise `foldr-++` (recommended)
 
 Show that fold and append are related as follows:
 \begin{code}
-postulate
-  foldr-++ : ∀ {A B : Set} (_⊗_ : A → B → B) (e : B) (xs ys : List A) →
-    foldr _⊗_ e (xs ++ ys) ≡ foldr _⊗_ (foldr _⊗_ e ys) xs
+foldr-++ : ∀ {A B : Set} (_⊗_ : A → B → B) (e : B) (xs ys : List A) →
+  foldr _⊗_ e (xs ++ ys) ≡ foldr _⊗_ (foldr _⊗_ e ys) xs
+
+foldr-++ {A} {B} f e [] ys       = refl
+foldr-++ {A} {B} f e (x ∷ xs) ys rewrite foldr-++ f e xs ys = refl
 \end{code}
 
 
@@ -666,9 +682,24 @@ postulate
 
 Show that map can be defined using fold:
 \begin{code}
-postulate
-  map-is-foldr : ∀ {A B : Set} {f : A → B} →
-    map f ≡ foldr (λ x xs → f x ∷ xs) []
+
+helper : ∀ {A B : Set} {f : A → B} → A → List B → List B
+helper {A} {B} {f} x xs = f x ∷ xs
+
+map-is-foldr′ : ∀ {A B : Set} {f : A → B} → (lis : List A) →
+  map f lis ≡ foldr (helper {A} {B} {f}) [] lis
+map-is-foldr′ []      = refl
+map-is-foldr′ {A} {B} {f} (h ∷ t) =
+  begin
+  f h ∷ map f t
+  ≡⟨ cong (_∷_ (f h)) (map-is-foldr′ t) ⟩
+  f h ∷ foldr helper [] t
+  ∎ where open Eq.≡-Reasoning
+
+map-is-foldr : ∀ {A B : Set} {f : A → B} →
+  map f ≡ foldr (λ x xs → f x ∷ xs) []
+
+map-is-foldr = extensionality map-is-foldr′
 \end{code}
 This requires extensionality.
 
@@ -676,14 +707,44 @@ This requires extensionality.
 
 Define a suitable fold function for the type of trees given earlier:
 \begin{code}
-postulate
-  fold-Tree : ∀ {A B C : Set}
-    → (A → C) → (C → B → C → C) → Tree A B → C
+fold-Tree : ∀ {A B C : Set}
+  → (A → C) → (C → B → C → C) → Tree A B → C
+
+fold-Tree f g (leaf x)      = f x
+fold-Tree f g (node t x t₁) = g (fold-Tree f g t) x (fold-Tree f g t₁)
 \end{code}
 
 #### Exercise `map-is-fold-Tree`
 
 Demonstrate an anologue of `map-is-foldr` for the type of trees.
+
+\begin{code}
+
+m : ∀ {A B C D : Set} → {f : A → C} → {g : B → D} → Tree A B → Tree C D
+m {A} {B} {C} {D} {f} {g} t = fold-Tree (λ z → leaf (f z)) (λ _ _ z → z) t
+
+helper1 : ∀ {A C D : Set} → {f : A → C} → A → Tree C D
+helper1 {A} {C} {D} {f} x = leaf (f x)
+
+helper2 : ∀ {B C D : Set} → {g : B → D} → Tree C D → B → Tree C D → Tree C D
+helper2 {B} {C} {D} {g} left n right = node left (g n) right
+
+map-is-fold-Tree′ : ∀ {A B C D : Set} {f : A → C} {g : B → D} → (t : Tree A B) →
+  map-Tree f g t ≡ fold-Tree (helper1 {A} {C} {D} {f}) (helper2 {B} {C} {D} {g}) t
+map-is-fold-Tree′ (leaf _)                             = refl
+map-is-fold-Tree′ {A} {B} {C} {D} {f} {g} (node t x u) =
+  begin
+   node (map-Tree f g t) (g x) (map-Tree f g u)
+  ≡⟨ cong (λ inner → node inner (g x) (map-Tree f g u)) (map-is-fold-Tree′ t) ⟩
+    node (fold-Tree helper1 helper2 t) (g x) (map-Tree f g u)
+  ≡⟨ cong
+       (node (fold-Tree (λ z → leaf (f z)) (λ z z₁ → node z (g z₁)) t)
+        (g x))
+       (map-is-fold-Tree′ u) ⟩
+    node (fold-Tree helper1 helper2 t) (g x)
+      (fold-Tree helper1 helper2 u)
+  ∎ where open Eq.≡-Reasoning
+\end{code}
 
 #### Exercise `sum-downFrom` (stretch)
 
@@ -701,9 +762,35 @@ _ = refl
 Prove that the sum of the numbers `(n - 1) + ⋯ + 0` is
 equal to `n * (n ∸ 1) / 2`:
 \begin{code}
-postulate
-  sum-downFrom : ∀ (n : ℕ)
-    → sum (downFrom n) * 2 ≡ n * (n ∸ 1)
+
+lemma : ∀ {n : ℕ} → n ≤ n * n
+lemma {0}     = z≤n
+lemma {suc n} = {!!} where open P
+
+sum-downFrom : ∀ (n : ℕ)
+  → sum (downFrom n) * 2 ≡ n * (n ∸ 1)
+
+sum-downFrom 0        = refl
+sum-downFrom (suc n) =
+  begin
+    (n + sum (downFrom n)) * 2
+  ≡⟨ *-distribʳ-+ 2 n (sum (downFrom n)) ⟩
+    n * 2 + foldr _+_ zero (downFrom n) * 2
+  ≡⟨ cong (n * 2 +_) (sum-downFrom n) ⟩
+    n * 2 + n * (n ∸ 1)
+  ≡⟨ cong (_+ n * (n ∸ 1)) (*-comm n 2) ⟩
+   n + (n + zero) + n * (n ∸ 1)
+  ≡⟨ +-assoc n (n + zero) (n * (n ∸ 1)) ⟩
+    n + ((n + zero) + n * (n ∸ 1))
+  ≡⟨ cong (λ x → n + (x + n * (n ∸ 1))) (+-identityʳ n) ⟩ 
+   n + (n + n * (n ∸ 1))
+  ≡⟨ cong (λ x → n + (n + x)) (*-distribˡ-∸ n n 1) ⟩
+    n + (n + (n * n ∸ n * 1))
+  ≡⟨ cong (λ x → n + (n + (n * n ∸ x))) (*-identityʳ n ) ⟩
+    n + (n + (n * n ∸ n))
+  ≡⟨ cong (n +_) (m+n∸m≡n {n} {(n * n)} lemma) ⟩ 
+    n + n * n
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 
@@ -766,7 +853,7 @@ foldr-monoid _⊗_ e ⊗-monoid [] y =
     (e ⊗ y)
   ≡⟨⟩
     foldr _⊗_ e [] ⊗ y
-  ∎
+  ∎ where open Eq.≡-Reasoning
 foldr-monoid _⊗_ e ⊗-monoid (x ∷ xs) y =
   begin
     foldr _⊗_ y (x ∷ xs)
@@ -778,7 +865,7 @@ foldr-monoid _⊗_ e ⊗-monoid (x ∷ xs) y =
     (x ⊗ foldr _⊗_ e xs) ⊗ y
   ≡⟨⟩
     foldr _⊗_ e (x ∷ xs) ⊗ y
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 As a consequence, using a previous exercise, we have the following:
@@ -792,7 +879,7 @@ foldr-monoid-++ _⊗_ e monoid-⊗ xs ys =
     foldr _⊗_ (foldr _⊗_ e ys) xs
   ≡⟨ foldr-monoid _⊗_ e monoid-⊗ xs (foldr _⊗_ e ys) ⟩
     foldr _⊗_ e xs ⊗ foldr _⊗_ e ys
-  ∎
+  ∎ where open Eq.≡-Reasoning
 \end{code}
 
 #### Exercise `foldl`
