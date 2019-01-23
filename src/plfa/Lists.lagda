@@ -24,7 +24,7 @@ open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _≤_; s≤s; z≤n)
 open import Data.Nat.Properties using
   (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ; *-distribʳ-+
-  ;*-comm; *-distribˡ-∸; m+n∸m≡n
+  ;*-comm; *-distribˡ-∸; m+n∸m≡n; ≤-poset; m≤m+n
   )
 open import Relation.Nullary using (¬_; Dec; yes; no)
 open import Data.Product using (_×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
@@ -765,7 +765,7 @@ equal to `n * (n ∸ 1) / 2`:
 
 lemma : ∀ {n : ℕ} → n ≤ n * n
 lemma {0}     = z≤n
-lemma {suc n} = {!!} where open P
+lemma {suc n} = m≤m+n (1 + n) (n * suc n)
 
 sum-downFrom : ∀ (n : ℕ)
   → sum (downFrom n) * 2 ≡ n * (n ∸ 1)
@@ -788,7 +788,7 @@ sum-downFrom (suc n) =
     n + (n + (n * n ∸ n * 1))
   ≡⟨ cong (λ x → n + (n + (n * n ∸ x))) (*-identityʳ n ) ⟩
     n + (n + (n * n ∸ n))
-  ≡⟨ cong (n +_) (m+n∸m≡n {n} {(n * n)} lemma) ⟩ 
+  ≡⟨ cong (n +_) (m+n∸m≡n {n} {(n * n)} lemma) ⟩
     n + n * n
   ∎ where open Eq.≡-Reasoning
 \end{code}
@@ -890,11 +890,72 @@ operations associate to the left rather than the right.  For example:
     foldr _⊗_ e [ x , y , z ]  =  x ⊗ (y ⊗ (z ⊗ e))
     foldl _⊗_ e [ x , y , z ]  =  ((e ⊗ x) ⊗ y) ⊗ z
 
+\begin{code}
+foldl : ∀ {A B : Set} → (B → A → B) → B → List A → B
+foldl _⊗_ e []        =  e
+foldl _⊗_ e (x ∷ xs)  =  foldl _⊗_ (e ⊗ x) xs
+
+_ : ∀ {A B : Set} → (_⊗_ : B → A → B) → (e : B) → (x y z : A) → 
+  foldl _⊗_ e [ x , y , z ] ≡ ((e ⊗ x) ⊗ y) ⊗ z
+_ = λ _⊗_ e x y z → refl
+\end{code}
 
 #### Exercise `foldr-monoid-foldl`
 
 Show that if `_⊕_` and `e` form a monoid, then `foldr _⊗_ e` and
 `foldl _⊗_ e` always compute the same result.
+
+\begin{code}
+
+foldl-monoid : ∀ {A : Set}
+  → (_⊗_ : A → A → A)
+  → (e : A)
+  → IsMonoid _⊗_ e
+  → (xs : List A)
+  → (y : A)
+  ---
+  → foldl _⊗_ y xs ≡ y ⊗ foldl _⊗_ e xs
+
+foldl-monoid _⊗_ e m [] y =
+  begin
+    y
+  ≡⟨ sym (identityʳ m y) ⟩
+    (y ⊗ e)
+  ∎ where open Eq.≡-Reasoning
+foldl-monoid _⊗_ e m (x ∷ xs) y =
+  begin
+    foldl _⊗_ (y ⊗ x) xs
+  ≡⟨ foldl-monoid _⊗_ e m xs (y ⊗ x) ⟩
+    ((y ⊗ x) ⊗ foldl _⊗_ e xs)
+  ≡⟨ assoc m y x (foldl _⊗_ e xs) ⟩
+    y ⊗ (x ⊗ foldl _⊗_ e xs)
+  ≡⟨ cong (y ⊗_) (sym (foldl-monoid _⊗_ e m xs x)) ⟩
+    (y ⊗ foldl _⊗_ x xs)
+  ≡⟨ sym (cong (λ z → y ⊗ foldl _⊗_ z xs) (identityˡ m x)) ⟩
+    (y ⊗ foldl _⊗_ (e ⊗ x) xs)
+  ∎ where open Eq.≡-Reasoning
+
+
+foldr-monoid-foldl : ∀ {A : Set}
+  → (_⊗_ : A → A → A)
+  → (e : A)
+  → IsMonoid _⊗_ e
+  → (lis : List A)
+  ----
+  → foldr _⊗_ e lis ≡ foldl _⊗_ e lis
+
+foldr-monoid-foldl {A} _⊗_ e m [] = refl
+foldr-monoid-foldl {A} _⊗_ e m (x ∷ xs) =
+  begin
+    x ⊗ foldr _⊗_ e xs
+  ≡⟨ cong (_⊗_ x) (foldr-monoid-foldl _⊗_ e m xs) ⟩
+    x ⊗ foldl _⊗_ e xs
+  ≡⟨ sym (foldl-monoid _⊗_ e m xs x) ⟩
+    foldl _⊗_ x xs
+  ≡⟨ sym (cong (λ z → foldl _⊗_ z xs) (identityˡ m x)) ⟩
+    foldl _⊗_ (e ⊗ x) xs
+  ∎ where open Eq.≡-Reasoning
+\end{code}
 
 
 ## All {#All}
