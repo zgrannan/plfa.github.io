@@ -27,7 +27,9 @@ open import Data.Nat.Properties using
   ;*-comm; *-distribˡ-∸; m+n∸m≡n; ≤-poset; m≤m+n
   )
 open import Relation.Nullary using (¬_; Dec; yes; no)
-open import Data.Product using (_×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
+open import Data.Product using (proj₁; proj₂; _×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
+open import Data.Sum using (_⊎_)
+open _⊎_
 open import Function using (_∘_)
 open import Level using (Level)
 open import plfa.Isomorphism using (_≃_; _⇔_; extensionality)
@@ -1071,9 +1073,66 @@ Prove a result similar to `All-++-↔`, but with `Any` in place of `All`, and a 
 replacement for `_×_`.  As a consequence, demonstrate an equivalence relating
 `_∈_` and `_++_`.
 
+\begin{code}
+
+Any-++-⇔ : ∀ {A : Set} → {P : A → Set} (xs ys : List A) → Any P (xs ++ ys) ⇔ (Any P xs ⊎ Any P ys)
+Any-++-⇔ xs ys =
+  record
+    { to = to xs ys
+    ; from = from xs ys
+    }
+  where
+    to : ∀ {A : Set} → {P : A → Set} (xs ys : List A) → Any P (xs ++ ys) → Any P xs ⊎ Any P ys
+    to []       ys Pys = inj₂ Pys
+    to {A} {P} (x ∷ xs) ys (here x₁) = inj₁ (here x₁)
+    to {A} {P} (x ∷ xs) ys (there Pys) with (to xs ys Pys)
+    to {A} {P} (x ∷ xs) ys (there Pys) | inj₁ x₁ = inj₁ (there x₁)
+    to {A} {P} (x ∷ xs) ys (there Pys) | inj₂ y  = inj₂ y
+
+    from : ∀ {A : Set} → {P : A → Set} (xs ys : List A) → Any P xs ⊎ Any P ys → Any P (xs ++ ys)
+    from _        ys (inj₁ (here x₁))   = here x₁
+    from (x ∷ xs) ys (inj₁ (there Pys)) = there (from xs ys (inj₁ Pys))
+    from []       ys (inj₂ p)           = p
+    from (x ∷ xs) ys (inj₂ p)           = there (from xs ys (inj₂ p))
+
+\end{code}
+
 #### Exercise `All-++-≃` (stretch)
 
 Show that the equivalence `All-++-⇔` can be extended to an isomorphism.
+
+\begin{code}
+
+_ = 2 + 3
+
+All-++-≃ : ∀ {A : Set} {P : A → Set} (xs ys : List A) →
+  All P (xs ++ ys) ≃ (All P xs × All P ys)
+All-++-≃ {A} {P} xs ys = record
+  { to      = to xs ys
+  ; from    = from xs ys
+  ; to∘from = to∘from xs ys
+  ; from∘to = from∘to xs ys
+  }
+  where
+    to : ∀ {A : Set} {P : A → Set} (xs ys : List A) →
+      All P (xs ++ ys) → (All P xs × All P ys)
+    to [] ys Pys = ⟨ [] , Pys ⟩
+    to (x ∷ xs) ys (Px ∷ Pxs++ys) = ⟨ Px ∷ (proj₁ (to xs ys Pxs++ys)) , proj₂ (to xs ys Pxs++ys) ⟩
+
+    from : ∀ { A : Set} {P : A → Set} (xs ys : List A) →
+      All P xs × All P ys → All P (xs ++ ys)
+    from [] ys ⟨ [] , Pys ⟩ = Pys
+    from (x ∷ xs) ys ⟨ Px ∷ Pxs , Pys ⟩ =  Px ∷ from xs ys ⟨ Pxs , Pys ⟩
+
+    to∘from : ∀ (xs ys : List A) → (y : All P xs × All P ys) → to xs ys (from xs ys y) ≡ y
+    to∘from _  _  ⟨ [] , snd ⟩ = refl
+    to∘from (x ∷ xs) ys ⟨ f ∷ fst , snd ⟩ rewrite to∘from xs ys ⟨ fst , snd ⟩ = refl
+
+    from∘to : ∀ (xs ys : List A) (y : All P (xs ++ ys)) → from xs ys (to xs ys y) ≡ y
+    from∘to [] ys y                                     = refl
+    from∘to (x ∷ xs) ys (q ∷ y) rewrite from∘to xs ys y = refl
+
+\end{code}
 
 #### Exercise `¬Any≃All¬` (stretch)
 
