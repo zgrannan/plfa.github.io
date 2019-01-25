@@ -21,6 +21,7 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong)
 import Relation.Binary.PartialOrderReasoning as P
 open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; not)
+open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _≤_; s≤s; z≤n)
 open import Data.Nat.Properties using
   (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ; *-distribʳ-+
@@ -1146,18 +1147,55 @@ _∘′_ : ∀ {ℓ₁ ℓ₂ ℓ₃ : Level} {A : Set ℓ₁} {B : Set ℓ₂} 
 
 Show that `Any` and `All` satisfy a version of De Morgan's Law:
 \begin{code}
-postulate
-  ¬Any≃All¬ : ∀ {A : Set} (P : A → Set) (xs : List A)
-    → (¬_ ∘′ Any P) xs ≃ All (¬_ ∘′ P) xs
+¬Any≃All¬ : ∀ {A : Set} (P : A → Set) (xs : List A)
+  → (¬_ ∘′ Any P) xs ≃ All (¬_ ∘′ P) xs
+¬Any≃All¬ {A} P xs =
+ record
+  { to      = to xs
+  ; from    = from xs
+  ; to∘from = to∘from xs
+  ; from∘to = from∘to xs
+  }
+  where
+    to : ∀ (xs : List A) → (¬_ ∘′ Any P) xs → All (¬_ ∘′ P) xs
+    to []       _ = []
+    to (x ∷ xs) p = (λ z → p (here z)) ∷ (to xs (λ z → p (there z)))
+
+    from : ∀ (xs : List A) → All (¬_ ∘′ P) xs → (¬_ ∘′ Any P) xs
+    from [] p                        = λ ()
+    from (x ∷ xs) (x₁ ∷ p) (here x₂) = x₁ x₂
+    from (x ∷ xs) (x₁ ∷ p) (there e) = from xs p e
+
+
+    from∘to : ∀ (xs : List A) → (y : (¬_ ∘′ Any P) xs) → from xs (to xs y) ≡ y
+    from∘to []       y = extensionality λ ()
+    from∘to (x ∷ xs) y = extensionality ft
+      where
+        ft : (p : Any P (x ∷ xs)) → from (x ∷ xs) (to (x ∷ xs) y) p ≡ y p
+        ft (here x₁) = refl
+        ft (there p) = ⊥-elim (y (there p))
+
+    to∘from : ∀ (xs : List A) → (y : All (¬_ ∘′ P) xs) → to xs (from xs y) ≡ y
+    to∘from [] []             = refl
+    to∘from (x ∷ xs) (y ∷ ys) =
+        begin
+          to (x ∷ xs) (from (x ∷ xs) (y ∷ ys))
+        ≡⟨ refl ⟩
+          y ∷ (to xs (from xs ys))
+        ≡⟨ cong (y ∷_) (to∘from xs ys) ⟩
+          y ∷ ys
+        ∎ where open Eq.≡-Reasoning
+    
 \end{code}
 
 Do we also have the following?
-\begin{code}
-postulate
-  ¬All≃Any¬ : ∀ {A : Set} (P : A → Set) (xs : List A)
-    → (¬_ ∘′ All P) xs ≃ Any (¬_ ∘′ P) xs
-\end{code}
+postulate ¬All≃Any¬ : ∀ {A : Set} (P : A → Set) (xs : List A)
+  → (¬_ ∘′ All P) xs ≃ Any (¬_ ∘′ P) xs
 If so, prove; if not, explain why.
+
+No. We cannot generate Any (¬_ ∘′ P) [], which is necessary to show
+isomorphism from (¬_ ∘′ All P) [], nor can we prove (¬_ ∘′ All P) []
+is uninhabited.
 
 
 ## Decidability of All
@@ -1197,6 +1235,19 @@ showing that the conjuction of two decidable propositions is itself
 decidable, using `_∷_` rather than `⟨_,_⟩` to combine the evidence for
 the head and tail of the list.
 
+\begin{code}
+any : ∀ {A : Set} → (A → Bool) → List A → Bool
+any p  =  foldr _∨_ false ∘ map p
+
+Any? : ∀ {A : Set} {P : A → Set} → Decidable P → Decidable (Any P)
+Any? P? []       = no λ ()
+Any? P? (x ∷ xs) with P? x
+Any? P? (x ∷ xs) | yes p = yes (here p)
+Any? P? (x ∷ xs) | no ¬p with Any? P? xs
+Any? P? (x ∷ xs) | no ¬p | yes p = yes (there p)
+Any? P? (x ∷ xs) | no h  | no  t = no λ{ (here h′) → h h′ ; (there t′) → t t′ }
+\end{code}
+
 
 #### Exercise `any?` (stretch)
 
@@ -1212,9 +1263,14 @@ Define the following variant of the traditional `filter` function on lists,
 which given a list and a decidable predicate returns all elements of the
 list satisfying the predicate:
 \begin{code}
-postulate
-  filter? : ∀ {A : Set} {P : A → Set}
-    → (P? : Decidable P) → List A → ∃[ ys ]( All P ys )
+filter? : ∀ {A : Set} {P : A → Set}
+  → (P? : Decidable P) → List A → ∃[ ys ]( All P ys )
+
+filter? {A} {P} P? []       = ⟨ [] , [] ⟩
+filter? {A} {P} P? (x ∷ xs) with P? x
+filter? {A} {P} P? (x ∷ xs) | yes p with filter? P? xs
+filter? {A} {P} P? (x ∷ xs) | yes p | ⟨ fst , snd ⟩ = ⟨ x ∷ fst , p ∷ snd ⟩
+filter? {A} {P} P? (x ∷ xs) | no ¬p = filter? P? xs
 \end{code}
 
 
