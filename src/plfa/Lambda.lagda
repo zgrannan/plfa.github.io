@@ -52,6 +52,7 @@ four.
 ## Imports
 
 \begin{code}
+open import Relation.Binary using (Decidable)
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Data.String using (String)
 open import Data.String.Unsafe using (_≟_)
@@ -59,6 +60,7 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Nullary.Negation using (¬?)
+open import plfa.Isomorphism using (_≲_)
 \end{code}
 
 ## Syntax of terms
@@ -198,6 +200,16 @@ Write out the definition of a lambda term that multiplies
 two natural numbers.  Your definition may use `plus` as
 defined earlier.
 
+\begin{code}
+
+mul : Term
+mul = μ "*" ⇒ ƛ "m" ⇒ ƛ "n" ⇒
+  case ` "m"
+    [zero⇒ `zero
+    |suc "m" ⇒ plus · `"n" · (` "*" · ` "m" · ` "n") ]
+
+\end{code}
+
 
 #### Exercise `mulᶜ`
 
@@ -205,6 +217,14 @@ Write out the definition of a lambda term that multiplies
 two natural numbers represented as Church numerals. Your
 definition may use `plusᶜ` as defined earlier (or may not
 — there are nice definitions both ways).
+
+\begin{code}
+
+mulᶜ : Term
+mulᶜ =  ƛ "m" ⇒ ƛ "n" ⇒ ƛ "s" ⇒ ƛ "z" ⇒
+        ` "m" · (plusᶜ · ` "m")  · (` "n" · ` "s" · ` "z")
+
+\end{code}
 
 
 #### Exercise `primed` (stretch)
@@ -240,6 +260,18 @@ plus′ = μ′ + ⇒ ƛ′ m ⇒ ƛ′ n ⇒
   n  =  ` "n"
 \end{code}
 Write out the definition of multiplication in the same style.
+
+\begin{code}
+mul′ : Term
+mul′ = μ′ * ⇒ ƛ′ m ⇒ ƛ′ n ⇒
+        case′ m
+        [zero⇒ `zero
+        |suc m ⇒ plus · n  · (* · m · n) ]
+  where
+  *  =  ` "*"
+  m  =  ` "m"
+  n  =  ` "n"
+\end{code}
 
 
 ### Formal vs informal
@@ -518,6 +550,26 @@ Rewrite the definition to factor the common part of these three
 clauses into a single function, defined by mutual recursion with
 substitution.
 
+\begin{code}
+
+_[_:=_]′ : Term → Id → Term → Term
+
+subs : {x y : String} → (Term → Term) → Dec (x ≡ y) → Term → Term → Term
+subs         cons (yes _) N _ = cons N
+subs {x} {y} cons (no  _) N V = cons (N [ y := V ]′)
+
+(` x) [ y := V ]′ with x ≟ y
+... | yes _          =  V
+... | no  _          =  ` x
+(ƛ x ⇒ N) [ y := V ]′ = subs (λ t → ƛ x ⇒ t) (x ≟ y) N V
+(L · M) [ y := V ]′   =  L [ y := V ]′ · M [ y := V ]′
+(`zero) [ y := V ]′   =  `zero
+(`suc M) [ y := V ]′  =  `suc M [ y := V ]′
+(case L [zero⇒ M |suc x ⇒ N ]) [ y := V ]′ =
+  subs (λ t → case L [ y := V ]′ [zero⇒ M [ y := V ]′ |suc x ⇒ t ]) (x ≟ y) N V
+(μ x ⇒ N) [ y := V ]′ = subs (λ t → μ x ⇒ t) (x ≟ y) N V
+\end{code}
+
 
 ## Reduction
 
@@ -720,6 +772,42 @@ and is reflexive and transitive.  A good exercise is to show that
 the two definitions are equivalent (indeed, one embeds in the other).
 
 #### Exercise `—↠≲—↠′`
+
+\begin{code}
+
+_—↠≲—↠′ : ∀ {A B : Term} → A —↠ B ≲ A —↠′ B
+_—↠≲—↠′ =
+  record
+    { to = to
+    ; from = from
+    ; from∘to = {!!}
+    }
+  where
+    to : {A B : Term} → A —↠ B → A —↠′ B
+    to (M ∎)         = refl′
+    to (L —→⟨ x ⟩ e) = trans′ (step′ x) (to e)
+
+    data Progress : Term → Term → Set where
+      none : ∀ {M}       →                  Progress M M
+      one  : ∀ {M N}   → M —→ N →           Progress M N
+      many : ∀ {L M N} → L —→ M → M —↠′ N → Progress L N
+
+    prog : {A B : Term} → A —↠′ B → Progress A B
+    prog (step′ x)    = one x
+    prog refl′        = none
+    prog (trans′ s t) with prog s
+    prog (trans′ s t) | none      = prog t
+    prog (trans′ s t) | one x     = many x t
+    prog (trans′ s t) | many x y  = many x (trans′ y t)
+
+    from : {A B : Term} → A —↠′ B → A —↠ B
+    from {A} {B} (step′ x)                = A —→⟨ x ⟩ B ∎
+    from {A}     refl′                    = A ∎
+    from {A} {B} (trans′ s t) with prog s
+    from {A} {B} (trans′ s t) | none      = from t
+    from {A} {B} (trans′ s t) | one x     = A —→⟨ x ⟩ (from t)
+    from {A} {B} (trans′ s t) | many x u  = A —→⟨ x ⟩ (from (trans′ u t))
+  \end{code}
 
 Show that the first notion of reflexive and transitive closure
 above embeds into the second. Why are they not isomorphic?
