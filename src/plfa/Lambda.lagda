@@ -737,7 +737,17 @@ Show that the first notion of reflexive and transitive closure
 above embeds into the second. Why are they not isomorphic?
 
 \begin{code}
--- Your code goes here
+—↠≲—↠′ : ∀ {A B : Term} → A —↠ B ≲ A —↠′ B
+—↠≲—↠′  =
+  record {
+    from = from
+  ; to = to
+  ; from∘to = from∘to }
+  where
+    from∘to = ?
+    from = ?
+    to = ?
+
 \end{code}
 
 ## Confluence
