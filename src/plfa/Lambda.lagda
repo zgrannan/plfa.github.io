@@ -199,7 +199,11 @@ two natural numbers.  Your definition may use `plus` as
 defined earlier.
 
 \begin{code}
--- Your code goes here
+mul : Term
+mul = μ "*" ⇒ ƛ "m" ⇒ ƛ "n" ⇒
+  case ` "m"
+  [zero⇒ `zero
+  |suc "m" ⇒ plus · ` "n" · (` "*" · ` "m" · ` "n") ]
 \end{code}
 
 
@@ -211,7 +215,9 @@ definition may use `plusᶜ` as defined earlier (or may not
 — there are nice definitions both ways).
 
 \begin{code}
--- Your code goes here
+mulᶜ : Term
+mulᶜ =  ƛ "m" ⇒ ƛ "n" ⇒ ƛ "s" ⇒ ƛ "z" ⇒
+        ` "m" · (` "n" · ` "s") · ` "z"
 \end{code}
 
 
@@ -527,7 +533,23 @@ clauses into a single function, defined by mutual recursion with
 substitution.
 
 \begin{code}
--- Your code goes here
+f : (x y : Id) → (Term → Term) → Term → Term → Term
+_[_:=_]′ : Term → Id → Term → Term
+
+f x y f N V with x ≟ y
+... | yes _ = f N
+... | no  _ = f (N [ y := V ]′)
+
+(` x) [ y := V ]′ with x ≟ y
+... | yes _          =  V
+... | no  _          =  ` x
+(ƛ x ⇒ N) [ y := V ]′ = f x y (ƛ x ⇒_) N V
+(L · M) [ y := V ]′  =  L [ y := V ]′ · M [ y := V ]′
+(`zero) [ y := V ]′  =  `zero
+(`suc M) [ y := V ]′  =  `suc M [ y := V ]′
+(case L [zero⇒ M |suc x ⇒ N ]) [ y := V ]′ =
+  f x y (λ v → case L [ y := V ]′ [zero⇒ M [ y := V ]′ |suc x ⇒ v ]) N V
+(μ x ⇒ N) [ y := V ]′ = f x y (μ x ⇒_) N V
 \end{code}
 
 
@@ -897,6 +919,53 @@ In the next chapter, we will see how to compute such reduction sequences.
 Write out the reduction sequence demonstrating that one plus one is two.
 
 \begin{code}
+
+one : Term
+one = `suc `zero
+
+_ : plus · one · one —↠ `suc `suc `zero
+_ =
+  begin
+    plus · one · one
+  —→⟨ ξ-·₁ (ξ-·₁ β-μ) ⟩
+    (ƛ "m" ⇒ ƛ "n" ⇒
+      case ` "m"
+        [zero⇒ ` "n"
+        |suc "m" ⇒ `suc (plus · ` "m" · ` "n") ])
+    · one · one
+  —→⟨ ξ-·₁ (β-ƛ (V-suc V-zero)) ⟩
+    (ƛ "n" ⇒
+      case one
+      [zero⇒ ` "n"
+      |suc "m" ⇒ `suc (plus · ` "m" · ` "n") ])
+      · one
+  —→⟨ β-ƛ (V-suc V-zero) ⟩
+   case one
+    [zero⇒ one
+    |suc "m" ⇒ `suc (plus · ` "m" · one) ]
+  —→⟨ β-suc V-zero ⟩
+    `suc (plus · `zero · one)
+  —→⟨ ξ-suc (ξ-·₁ (ξ-·₁ β-μ)) ⟩
+    `suc (
+      (ƛ "m" ⇒ ƛ "n" ⇒
+      case ` "m"
+      [zero⇒ ` "n"
+      |suc "m" ⇒ `suc (plus · ` "m" · ` "n") ]) · `zero · one)
+  —→⟨ ξ-suc (ξ-·₁ (β-ƛ V-zero)) ⟩
+    `suc (
+    (ƛ "n" ⇒
+    case `zero
+    [zero⇒ ` "n"
+    |suc "m" ⇒ `suc (plus · ` "m" · ` "n") ]) · one)
+  —→⟨ ξ-suc (β-ƛ (V-suc V-zero)) ⟩
+    `suc (
+    (case `zero
+    [zero⇒ one
+    |suc "m" ⇒ `suc (plus · ` "m" · one) ]))
+  —→⟨ ξ-suc β-zero ⟩
+    `suc (`suc `zero)
+  ∎
+
 -- Your code goes here
 \end{code}
 
@@ -1349,7 +1418,15 @@ Using the term `mul` you defined earlier, write out the derivation
 showing that it is well-typed.
 
 \begin{code}
--- Your code goes here
+⊢mul : ∀ {Γ} → Γ ⊢ mul ⦂ `ℕ ⇒ `ℕ ⇒ `ℕ
+⊢mul = ⊢μ (⊢ƛ (⊢ƛ (⊢case (⊢` ∋m) ⊢zero p)))
+  where
+    ∋m = S ("m" ≠ "n") Z
+    ∋* = (S ("*" ≠ "m") (S ("*" ≠ "n") (S ("*" ≠ "m") Z)))
+    p  = ⊢plus · ⊢` (S ("n" ≠ "m") Z) · (((⊢` ∋*) · ⊢` Z) · ⊢` (S ("n" ≠ "m") Z))
+
+⊢2*2 : ∅ ⊢ mul · two · two ⦂ `ℕ
+⊢2*2 = ⊢mul · ⊢two · ⊢two
 \end{code}
 
 
@@ -1359,7 +1436,19 @@ Using the term `mulᶜ` you defined earlier, write out the derivation
 showing that it is well-typed.
 
 \begin{code}
--- Your code goes here
+
+⊢mulᶜ : ∀ {Γ A} → Γ ⊢ mulᶜ ⦂ Ch A ⇒ Ch A ⇒ Ch A
+⊢mulᶜ = ⊢ƛ (⊢ƛ (⊢ƛ (⊢ƛ (((⊢` ∋m) · ((⊢` ∋n) · ⊢` ∋s) · ⊢` Z)))))
+  where
+    m≠n = "m" ≠ "n"
+    m≠z = "m" ≠ "z"
+    m≠s = "m" ≠ "s"
+    n≠z = "n" ≠ "z"
+    n≠s = "n" ≠ "s"
+    s≠z = "s" ≠ "z"
+    ∋n  = S n≠z (S n≠s Z)
+    ∋m  = S m≠z (S m≠s (S m≠n Z))
+    ∋s  = S s≠z Z
 \end{code}
 
 
